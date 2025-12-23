@@ -179,7 +179,13 @@ const ChatList = ({ user }) => {
     const day = 24 * hour
     
     if (diff < minute) return 'Just now'
-    if (diff < hour) return `${Math.floo  // Render conversation item
+        if (diff < hour) return `${Math.floor(diff / minute)} minutes ago`
+        if (diff < day) return `${Math.floor(diff / hour)} hours ago`
+        return new Date(timestamp).toLocaleDateString()
+  }
+
+    // Render conversation item
+  
   const renderConversation = (conv) => (
     <div
       key={conv.address}
