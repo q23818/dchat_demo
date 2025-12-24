@@ -125,7 +125,7 @@ const LandingPage = () => {
                 className="bg-white p-8 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200"
               >
                 <div className="mb-4">{feature.icon}</div>
-                <h4 className="text-xl font-bold text-black mb-3">
+                <h4 className="text-xl font-bold text-black mb-3 break-words">
                   {feature.title}
                 </h4>
                 <p className="text-gray-600 leading-relaxed">
