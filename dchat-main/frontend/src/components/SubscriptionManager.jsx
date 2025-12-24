@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useWeb3 } from '../contexts/Web3Context'
+import { useLanguage } from '../contexts/LanguageContext'
 import { LivingPortfolioService } from '../services/LivingPortfolioService'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
 import { Button } from './ui/button'
@@ -20,11 +21,12 @@ import {
 import { formatAddress } from '../config/web3'
 
 /**
- * TODO: Translate '订阅管理组件'
- * TODO: Translate '管理用户的订阅和订阅者'
+ * Subscription Manager Component
+ * Manage user subscriptions and subscribers
  */
 export default function SubscriptionManager() {
   const { account, provider, signer, isConnected } = useWeb3()
+  const { t } = useLanguage()
   const [subscriptions, setSubscriptions] = useState([])
   const [subscribers, setSubscribers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -82,7 +84,7 @@ export default function SubscriptionManager() {
       await loadData()
     } catch (err) {
       console.error('Error unsubscribing:', err)
-      alert(`取消订阅失败: ${err.message}`)
+      alert(`${t('subscription.unsubscribeFailed')}: ${err.message}`)
     }
   }
 
@@ -91,7 +93,7 @@ export default function SubscriptionManager() {
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
           <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4" />
-          <p className="text-gray-500">加载订阅数据...</p>
+          <p className="text-gray-500">{t('subscription.loading')}</p>
         </div>
       </div>
     )
@@ -99,12 +101,12 @@ export default function SubscriptionManager() {
 
   return (
     <div className="h-full overflow-auto p-4 space-y-6">
-      {/* TODO: Translate '头部统计' */}
+      {/* Statistics Header */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-gray-500">
-              我的订阅
+              {t('subscription.mySubscriptions')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -113,7 +115,7 @@ export default function SubscriptionManager() {
               <span className="text-2xl font-bold">{subscriptions.length}</span>
             </div>
             <p className="text-sm text-gray-500 mt-1">
-              正在关注的用户
+              {t('subscription.followingUsers')}
             </p>
           </CardContent>
         </Card>
@@ -121,7 +123,7 @@ export default function SubscriptionManager() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-gray-500">
-              我的订阅者
+              {t('subscription.mySubscribers')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -130,7 +132,7 @@ export default function SubscriptionManager() {
               <span className="text-2xl font-bold">{subscribers.length}</span>
             </div>
             <p className="text-sm text-gray-500 mt-1">
-              关注我的用户
+              {t('subscription.followers')}
             </p>
           </CardContent>
         </Card>
@@ -143,38 +145,38 @@ export default function SubscriptionManager() {
         </Alert>
       )}
 
-      {/* TODO: Translate '标签切换' */}
+      {/* Tab Switcher */}
       <div className="flex gap-2 border-b">
         <Button
           variant={activeTab === 'subscriptions' ? 'default' : 'ghost'}
           onClick={() => setActiveTab('subscriptions')}
         >
           <Bell className="w-4 h-4 mr-2" />
-          我的订阅 ({subscriptions.length})
+          {t('subscription.mySubscriptions')} ({subscriptions.length})
         </Button>
         <Button
           variant={activeTab === 'subscribers' ? 'default' : 'ghost'}
           onClick={() => setActiveTab('subscribers')}
         >
           <Users className="w-4 h-4 mr-2" />
-          订阅者 ({subscribers.length})
+          {t('subscription.subscribers')} ({subscribers.length})
         </Button>
       </div>
 
-      {/* TODO: Translate '订阅列表' */}
+      {/* Subscription List */}
       {activeTab === 'subscriptions' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">我的订阅</h2>
+            <h2 className="text-xl font-semibold">{t('subscription.mySubscriptions')}</h2>
           </div>
 
           {subscriptions.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
                 <Bell className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                <p className="text-gray-500 mb-2">您还没有订阅任何用户</p>
+                <p className="text-gray-500 mb-2">{t('subscription.noSubscriptions')}</p>
                 <p className="text-sm text-gray-400">
-                  订阅用户后,您将收到他们的更新通知
+                  {t('subscription.subscriptionHint')}
                 </p>
               </CardContent>
             </Card>
@@ -196,7 +198,7 @@ export default function SubscriptionManager() {
                           </p>
                           <Badge variant="secondary" className="mt-1">
                             <CheckCircle2 className="w-3 h-3 mr-1" />
-                            已订阅
+                            {t('subscription.subscribed')}
                           </Badge>
                         </div>
                       </div>
@@ -206,7 +208,7 @@ export default function SubscriptionManager() {
                         onClick={() => handleUnsubscribe(address)}
                       >
                         <BellOff className="w-4 h-4 mr-2" />
-                        取消订阅
+                        {t('subscription.unsubscribe')}
                       </Button>
                     </div>
                   </CardContent>
@@ -217,20 +219,20 @@ export default function SubscriptionManager() {
         </div>
       )}
 
-      {/* TODO: Translate '订阅者列表' */}
+      {/* Subscribers List */}
       {activeTab === 'subscribers' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">我的订阅者</h2>
+            <h2 className="text-xl font-semibold">{t('subscription.mySubscribers')}</h2>
           </div>
 
           {subscribers.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
                 <Users className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                <p className="text-gray-500 mb-2">还没有用户订阅您</p>
+                <p className="text-gray-500 mb-2">{t('subscription.noSubscribers')}</p>
                 <p className="text-sm text-gray-400">
-                  创建优质的作品集和项目,吸引更多订阅者
+                  {t('subscription.subscribersHint')}
                 </p>
               </CardContent>
             </Card>
@@ -251,7 +253,7 @@ export default function SubscriptionManager() {
                         </p>
                         <Badge variant="secondary" className="mt-1">
                           <UserPlus className="w-3 h-3 mr-1" />
-                          订阅者
+                          {t('subscription.subscriber')}
                         </Badge>
                       </div>
                     </div>

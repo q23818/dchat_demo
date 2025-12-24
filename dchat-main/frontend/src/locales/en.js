@@ -32,7 +32,7 @@ export default {
     },
     terms: 'By connecting your wallet, you agree to our Terms of Service and Privacy Policy'
   },
-  
+
   // Navigation
   nav: {
     chats: 'Chats',
@@ -40,7 +40,7 @@ export default {
     projects: 'Projects',
     profile: 'Profile'
   },
-  
+
   // Profile
   profile: {
     title: 'Profile',
@@ -62,7 +62,7 @@ export default {
       completed: 'Completed'
     }
   },
-  
+
   // Chat
   chat: {
     searchPlaceholder: 'Search conversations...',
@@ -72,7 +72,7 @@ export default {
     messagePlaceholder: 'Type a message...',
     send: 'Send'
   },
-  
+
   // Moments
   moments: {
     title: 'Moments',
@@ -82,7 +82,7 @@ export default {
     comment: 'Comment',
     share: 'Share'
   },
-  
+
   // Projects
   projects: {
     title: 'Projects',
@@ -185,7 +185,7 @@ export default {
     cancelledByUser: 'Cancelled by sender',
     optional: 'Optional'
   },
-  
+
   // LinkedIn
   linkedin: {
     connect: 'Connect LinkedIn',
@@ -195,7 +195,7 @@ export default {
     noMessages: 'No LinkedIn messages yet',
     viewAll: 'View All Messages'
   },
-  
+
   // Group
   group: {
     create: 'Create Group',
@@ -310,7 +310,7 @@ export default {
     ipfsInfo: 'Your avatar will be stored on IPFS (decentralized storage) and linked to your profile.',
     done: 'Done'
   },
-  
+
   // Portfolio
   portfolio: {
     pleaseLogin: 'Please log in first',
@@ -342,6 +342,24 @@ export default {
     noProjects: 'No projects yet',
     earnedCredentials: 'Verified Credentials',
     noCredentials: 'No credentials yet'
+  },
+
+  // Subscription
+  subscription: {
+    loading: 'Loading subscription data...',
+    unsubscribeFailed: 'Failed to unsubscribe',
+    mySubscriptions: 'My Subscriptions',
+    followingUsers: 'Following users',
+    mySubscribers: 'My Subscribers',
+    followers: 'Followers',
+    subscribers: 'Subscribers',
+    noSubscriptions: 'You haven\'t subscribed to any users yet',
+    subscriptionHint: 'Subscribe to users to receive their updates',
+    subscribed: 'Subscribed',
+    unsubscribe: 'Unsubscribe',
+    noSubscribers: 'No one has subscribed to you yet',
+    subscribersHint: 'Create quality portfolios and projects to attract more subscribers',
+    subscriber: 'Subscriber'
   },
 
   // Common

@@ -32,7 +32,7 @@ export default {
     },
     terms: '连接钱包即表示您同意我们的服务条款和隐私政策'
   },
-  
+
   // Navigation
   nav: {
     chats: '聊天',
@@ -40,7 +40,7 @@ export default {
     projects: '项目',
     profile: '我的'
   },
-  
+
   // Profile
   profile: {
     title: '个人资料',
@@ -62,7 +62,7 @@ export default {
       completed: '已完成'
     }
   },
-  
+
   // Chat
   chat: {
     searchPlaceholder: '搜索对话...',
@@ -72,7 +72,7 @@ export default {
     messagePlaceholder: '输入消息...',
     send: '发送'
   },
-  
+
   // Moments
   moments: {
     title: '动态',
@@ -82,7 +82,7 @@ export default {
     comment: '评论',
     share: '分享'
   },
-  
+
   // Projects
   projects: {
     title: '项目',
@@ -185,7 +185,7 @@ export default {
     cancelledByUser: '发送者已取消',
     optional: '可选'
   },
-  
+
   // LinkedIn
   linkedin: {
     connect: '连接领英',
@@ -195,7 +195,7 @@ export default {
     noMessages: '暂无领英消息',
     viewAll: '查看所有消息'
   },
-  
+
   // Group
   group: {
     create: '创建群组',
@@ -310,7 +310,7 @@ export default {
     ipfsInfo: '您的头像将存储在IPFS（去中心化存储）并关联到您的个人资料。',
     done: '完成'
   },
-  
+
   // Portfolio
   portfolio: {
     pleaseLogin: '请先登录',
@@ -342,6 +342,24 @@ export default {
     noProjects: '暂无项目',
     earnedCredentials: '已验证凭证',
     noCredentials: '暂无凭证'
+  },
+
+  // Subscription
+  subscription: {
+    loading: '加载订阅数据...',
+    unsubscribeFailed: '取消订阅失败',
+    mySubscriptions: '我的订阅',
+    followingUsers: '正在关注的用户',
+    mySubscribers: '我的订阅者',
+    followers: '关注我的用户',
+    subscribers: '订阅者',
+    noSubscriptions: '您还没有订阅任何用户',
+    subscriptionHint: '订阅用户后,您将收到他们的更新通知',
+    subscribed: '已订阅',
+    unsubscribe: '取消订阅',
+    noSubscribers: '还没有用户订阅您',
+    subscribersHint: '创建优质的作品集和项目,吸引更多订阅者',
+    subscriber: '订阅者'
   },
 
   // Common
