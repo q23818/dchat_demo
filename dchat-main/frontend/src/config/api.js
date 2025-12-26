@@ -1,5 +1,5 @@
 // API Configuration
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://backend-op1c06n9l-everest-ans-projects.vercel.app';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://44.211.79.69';
 
 export const API_ENDPOINTS = {
   // Auth endpoints
@@ -8,7 +8,7 @@ export const API_ENDPOINTS = {
   WALLET_LOGIN: `${API_BASE_URL}/api/auth/wallet-login`,
   ALIPAY_LOGIN: `${API_BASE_URL}/api/auth/alipay-login`,
   GET_ME: `${API_BASE_URL}/api/auth/me`,
-  
+
   // Health check
   HEALTH: `${API_BASE_URL}/health`
 };
@@ -16,7 +16,7 @@ export const API_ENDPOINTS = {
 // API helper function
 export const apiCall = async (endpoint, options = {}) => {
   const token = localStorage.getItem('authToken');
-  
+
   const defaultOptions = {
     headers: {
       'Content-Type': 'application/json',

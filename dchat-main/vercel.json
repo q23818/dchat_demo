@@ -13,8 +13,9 @@
     "VITE_PROJECT_COLLABORATION_ADDRESS": "0x09668e0764B43E8093a65d33620DeAd9BDa1d85c",
     "VITE_LIVING_PORTFOLIO_ADDRESS": "0xYourLivingPortfolioAddress",
     "VITE_VERIFIED_CREDENTIALS_ADDRESS": "0xYourVerifiedCredentialsAddress",
-    "VITE_API_BASE_URL": "https://dchat.pro/api",
-    "VITE_BACKEND_URL": "https://dchat.pro/api",
+    "VITE_API_URL": "http://44.211.79.69",
+    "VITE_API_BASE_URL": "http://44.211.79.69/api",
+    "VITE_BACKEND_URL": "http://44.211.79.69",
     "VITE_ENABLE_LINKEDIN_AUTH": "true",
     "VITE_ENABLE_EMAIL_VERIFICATION": "true",
     "VITE_ENABLE_PROJECT_COLLABORATION": "true"
