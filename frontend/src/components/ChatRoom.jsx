@@ -24,7 +24,7 @@ const ChatRoom = () => {
   const { id: recipientAddress } = useParams()
   const { account, provider, signer, isConnected } = useWeb3()
   const { success, error: showError, info } = useToast()
-  
+
   const [message, setMessage] = useState('')
   const [messages, setMessages] = useState([])
   const [loading, setLoading] = useState(true)
@@ -38,7 +38,7 @@ const ChatRoom = () => {
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
   const [upgradeMessage, setUpgradeMessage] = useState({ title: '', description: '' })
   const [showPaymentDialog, setShowPaymentDialog] = useState(false)
-  
+
   const messagesEndRef = useRef(null)
   const fileInputRef = useRef(null)
 
@@ -68,7 +68,7 @@ const ChatRoom = () => {
           showError('Error', 'Failed to initialize encryption keys')
         }
       }
-      
+
       if (provider && signer) {
         const service = new MessageStorageService(provider, signer)
         setMessageService(service)
@@ -83,15 +83,15 @@ const ChatRoom = () => {
 
     try {
       setLoading(true)
-      
+
       // TODO: Translate {t('load_messages_local_storage')}
       const storageKey = `dchat_messages_${account}_${recipientAddress}`
       const stored = localStorage.getItem(storageKey)
       const localMessages = stored ? JSON.parse(stored) : []
-      
+
       setMessages(localMessages)
       setLoading(false)
-      
+
       // TODO: Translate {t('mark_message_read')}
       markMessagesAsRead(localMessages)
     } catch (err) {
@@ -106,18 +106,18 @@ const ChatRoom = () => {
     const unreadMessages = msgs.filter(m => m.sender === 'other' && !m.isRead)
     if (unreadMessages.length > 0) {
       // TODO: Translate {t('update_local_storage')}
-      const updatedMessages = msgs.map(m => 
+      const updatedMessages = msgs.map(m =>
         m.sender === 'other' ? { ...m, isRead: true } : m
       )
       const storageKey = `dchat_messages_${account}_${recipientAddress}`
       localStorage.setItem(storageKey, JSON.stringify(updatedMessages))
       setMessages(updatedMessages)
-      
+
       // Mark as read via API
       const conversationId = [account, recipientAddress].sort().join('_')
       const messageIds = unreadMessages.map(m => m.id)
       await readReceiptService.markAllMessagesAsRead(conversationId, messageIds)
-      
+
       // TODO: Translate {t('update_unread_count')}
       updateUnreadCount()
     }
@@ -128,11 +128,11 @@ const ChatRoom = () => {
     const conversationsKey = 'dchat_conversations'
     const stored = localStorage.getItem(conversationsKey)
     const conversations = stored ? JSON.parse(stored) : []
-    
-    const updated = conversations.map(conv => 
+
+    const updated = conversations.map(conv =>
       conv.address === recipientAddress ? { ...conv, unread: 0 } : conv
     )
-    
+
     localStorage.setItem(conversationsKey, JSON.stringify(updated))
   }
 
@@ -157,7 +157,7 @@ const ChatRoom = () => {
     // Listen for new messages
     const unsubscribe = socketService.onMessage(async (data) => {
       console.log('Received message via Socket.IO:', data)
-      
+
       if (data.room_id !== roomId) return
       if (data.user_id === account) return
 
@@ -192,10 +192,10 @@ const ChatRoom = () => {
           return prev
         }
         const updated = [...prev, newMessage]
-        
+
         const storageKey = `dchat_messages_${account}_${recipientAddress}`
         localStorage.setItem(storageKey, JSON.stringify(updated))
-        
+
         return updated
       })
 
@@ -227,7 +227,7 @@ const ChatRoom = () => {
     try {
       // 1. Get recipient's public key
       const recipientPublicKey = await KeyManagementService.getPublicKey(recipientAddress)
-      
+
       if (!recipientPublicKey) {
         showError('Error', 'Recipient has not set up encryption keys yet')
         setSending(false)
@@ -236,13 +236,13 @@ const ChatRoom = () => {
 
       // 2. Encrypt message for recipient
       const encryptedContent = await encryptMessage(messageText, recipientPublicKey)
-      
+
       // 3. Encrypt message for self (so we can read it later)
       // In a real app, we might store local copy in plaintext or encrypt with our own key
       // For simplicity here, we'll just store the plaintext in local state/storage
-      
+
       const messageId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-      
+
       const newMessage = {
         id: messageId,
         text: messageText, // Local display uses plaintext
@@ -282,9 +282,9 @@ const ChatRoom = () => {
     const conversationsKey = 'dchat_conversations'
     const stored = localStorage.getItem(conversationsKey)
     const conversations = stored ? JSON.parse(stored) : []
-    
+
     const existingIndex = conversations.findIndex(c => c.address === recipientAddress)
-    
+
     const conversationData = {
       address: recipientAddress,
       username: recipientProfile?.username || recipientAddress,
@@ -293,16 +293,16 @@ const ChatRoom = () => {
       timestamp: Date.now(),
       unread: 0
     }
-    
+
     if (existingIndex >= 0) {
       conversations[existingIndex] = conversationData
     } else {
       conversations.unshift(conversationData)
     }
-    
+
     localStorage.setItem(conversationsKey, JSON.stringify(conversations))
   }
-// Handle file upload
+  // Handle file upload
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -328,14 +328,14 @@ const ChatRoom = () => {
 
       // Upload to IPFS
       const ipfsHash = await ipfsService.uploadFile(file)
-      
+
       // Construct file message
       const messageText = `[FILE]${file.name}|${ipfsHash}|${file.type}|${file.size}`
-      
+
       // Send as regular message (encrypted)
       // 1. Get recipient's public key
       const recipientPublicKey = await KeyManagementService.getPublicKey(recipientAddress)
-      
+
       if (!recipientPublicKey) {
         showError('Error', 'Recipient has not set up encryption keys yet')
         setUploading(false)
@@ -344,9 +344,9 @@ const ChatRoom = () => {
 
       // 2. Encrypt message for recipient
       const encryptedContent = await encryptMessage(messageText, recipientPublicKey)
-      
+
       const messageId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-      
+
       const newMessage = {
         id: messageId,
         text: messageText,
@@ -388,44 +388,7 @@ const ChatRoom = () => {
       e.target.value = '' // Reset input
     }
   }
-        const fileMessage = {
-          id: Date.now().toString(),
-          text: file.name,
-          sender: 'me',
-          timestamp: new Date().toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit'
-          }),
-          isRead: false,
-          type: ipfsService.getFileType(file.name),
-          fileUrl: result.url,
-          fileSize: ipfsService.formatFileSize(result.size),
-          fileName: file.name
-        }
 
-        // TODO: Translate {t('add_to_message_list')}
-        const updatedMessages = [...messages, fileMessage]
-        setMessages(updatedMessages)
-
-        // TODO: Translate {t('save_to_local_storage')}
-        const storageKey = `dchat_messages_${account}_${recipientAddress}`
-        localStorage.setItem(storageKey, JSON.stringify(updatedMessages))
-
-        // TODO: Translate {t('update_chat_list')}
-        updateConversationsList(`📎 ${file.name}`)
-
-        success('Uploaded!', 'File uploaded successfully')
-      } else {
-        showError('Upload Failed', result.error)
-      }
-    } catch (err) {
-      console.error('Error uploading file:', err)
-      showError('Error', 'Failed to upload file')
-    } finally {
-      setUploading(false)
-      setUploadProgress(0)
-    }
-  }
 
   // TODO: Translate {t('render_message')}
   const renderMessage = (msg) => {
@@ -444,30 +407,28 @@ const ChatRoom = () => {
           )}
           <div className={`max-w-[70%] ${isMe ? 'order-2' : 'order-1'}`}>
             <div
-              className={`rounded-2xl px-4 py-3 border-2 ${
-                isMe
-                  ? 'bg-green-50 border-green-200 text-green-900'
-                  : 'bg-blue-50 border-blue-200 text-blue-900'
-              }`}
+              className={`rounded-2xl px-4 py-3 border-2 ${isMe
+                ? 'bg-green-50 border-green-200 text-green-900'
+                : 'bg-blue-50 border-blue-200 text-blue-900'
+                }`}
             >
               <div className="flex items-center gap-2 mb-1">
                 <DollarSign className="w-5 h-5" />
                 <span className="font-semibold">{isMe ? 'Payment Sent' : 'Payment Received'}</span>
               </div>
-              <div 
-  className="text-sm"
-  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(msg.text) }} 
-/>
+              <div
+                className="text-sm"
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(msg.text) }}
+              />
               {msg.escrowId && (
                 <p className="text-xs mt-1 opacity-70">Escrow ID: {msg.escrowId}</p>
               )}
               <div className="mt-2 flex items-center gap-2">
-                <span className={`text-xs px-2 py-1 rounded-full ${
-                  msg.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                <span className={`text-xs px-2 py-1 rounded-full ${msg.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                   msg.status === 'released' ? 'bg-green-100 text-green-800' :
-                  msg.status === 'refunded' ? 'bg-red-100 text-red-800' :
-                  'bg-gray-100 text-gray-800'
-                }`}>
+                    msg.status === 'refunded' ? 'bg-red-100 text-red-800' :
+                      'bg-gray-100 text-gray-800'
+                  }`}>
                   {msg.status || 'pending'}
                 </span>
               </div>
@@ -496,16 +457,15 @@ const ChatRoom = () => {
           )}
           <div className={`max-w-[70%] ${isMe ? 'order-2' : 'order-1'}`}>
             <div
-              className={`rounded-2xl px-4 py-2 ${
-                isMe
-                  ? 'bg-black text-white rounded-br-sm'
-                  : 'bg-gray-100 text-gray-900 rounded-bl-sm'
-              }`}
+              className={`rounded-2xl px-4 py-2 ${isMe
+                ? 'bg-black text-white rounded-br-sm'
+                : 'bg-gray-100 text-gray-900 rounded-bl-sm'
+                }`}
             >
-              <div 
-  className="text-sm whitespace-pre-wrap break-words"
-  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(msg.text) }} 
-/>
+              <div
+                className="text-sm whitespace-pre-wrap break-words"
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(msg.text) }}
+              />
             </div>
             <div className="flex items-center gap-2 mt-1 px-2">
               <span className="text-xs text-gray-500">{msg.timestamp}</span>
@@ -514,7 +474,7 @@ const ChatRoom = () => {
               )}
             </div>
             {/* Message Reactions */}
-            <MessageReactions 
+            <MessageReactions
               messageId={msg.id}
               currentUserId={account}
               initialReactions={msg.reactions || []}
@@ -537,11 +497,10 @@ const ChatRoom = () => {
         )}
         <div className={`max-w-[75%] ${isMe ? 'order-2' : 'order-1'}`}>
           <div
-            className={`rounded-2xl overflow-hidden shadow-sm transition-all ${
-              isMe 
-                ? 'bg-primary text-primary-foreground rounded-br-none' 
-                : 'bg-card text-card-foreground border border-border rounded-bl-none'
-            }`}
+            className={`rounded-2xl overflow-hidden shadow-sm transition-all ${isMe
+              ? 'bg-primary text-primary-foreground rounded-br-none'
+              : 'bg-card text-card-foreground border border-border rounded-bl-none'
+              }`}
           >
             {msg.type === 'image' && (
               <div className="relative group/image">
@@ -564,13 +523,11 @@ const ChatRoom = () => {
                 href={msg.fileUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`flex items-center gap-3 px-4 py-3 transition-colors ${
-                  isMe ? 'hover:bg-white/10' : 'hover:bg-black/5'
-                }`}
+                className={`flex items-center gap-3 px-4 py-3 transition-colors ${isMe ? 'hover:bg-white/10' : 'hover:bg-black/5'
+                  }`}
               >
-                <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl shadow-sm ${
-                  isMe ? 'bg-white/20 text-white' : 'bg-white text-primary'
-                }`}>
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl shadow-sm ${isMe ? 'bg-white/20 text-white' : 'bg-white text-primary'
+                  }`}>
                   {msg.type === 'pdf' ? '📄' : '📎'}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -580,7 +537,7 @@ const ChatRoom = () => {
               </a>
             )}
           </div>
-          
+
           <div className={`flex items-center gap-1 mt-1 px-1 ${isMe ? 'justify-end' : 'justify-start'}`}>
             <span className="text-[10px] text-muted-foreground opacity-70">{msg.timestamp}</span>
             {isMe && (
@@ -603,24 +560,27 @@ const ChatRoom = () => {
         <div className="text-center">
           <p className="text-gray-600 mb-4">Please connect your wallet</p>
           <Button onClick={() => navigate('/login')}>Connect Wallet</Button>
-        </di  const isFileTransfer = recipientAddress === account
-  
+        </div>
+      </div>
+    )
+  }
+
+  const isFileTransfer = recipientAddress === account
+
   return (
-    <div className="flex flex-col h-screen bg-background">
+    <div className="flex flex-col h-full bg-background">
       {/* Header */}
-      <div className={`flex items-center justify-between px-4 py-3 border-b border-border/40 backdrop-blur-xl sticky top-0 z-10 ${
-        isFileTransfer ? 'bg-blue-50/80 dark:bg-blue-950/20' : 'bg-background/80'
-      }`}>
+      <div className={`flex items-center justify-between px-4 py-3 border-b border-border/40 backdrop-blur-xl sticky top-0 z-10 ${isFileTransfer ? 'bg-blue-50/80 dark:bg-blue-950/20' : 'bg-background/80'
+        }`}>
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={() => navigate('/')} className="hover:bg-accent/50">
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-sm ring-2 ring-offset-2 ring-offset-background ${
-              isFileTransfer 
-                ? 'bg-blue-100 text-blue-600 ring-blue-100' 
-                : 'bg-secondary text-secondary-foreground ring-transparent'
-            }`}>
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-sm ring-2 ring-offset-2 ring-offset-background ${isFileTransfer
+              ? 'bg-blue-100 text-blue-600 ring-blue-100'
+              : 'bg-secondary text-secondary-foreground ring-transparent'
+              }`}>
               {isFileTransfer ? '📂' : (recipientProfile?.avatar || '👤')}
             </div>
             <div>
@@ -633,7 +593,8 @@ const ChatRoom = () => {
               </p>
             </div>
           </div>
-        </div>ssName="flex items-center gap-2">
+        </div>
+        <div className="flex items-center gap-2">
           <button className="p-2 hover:bg-gray-100 rounded-full">
             <Phone className="w-5 h-5" />
           </button>

@@ -114,21 +114,43 @@ const ChatList = ({ user }) => {
       const allConvs = [...convs, ...groupConvs]
 
       // Add File Transfer Assistant if not present
-      const hasSelfChat = allConvs.some(c => c.address === userAddress)
-      if (!hasSelfChat && userAddress) {
-        allConvs.unshift({
-          address: userAddress,
+      const hasSelf = allConvs.some(c => c.address === userAddress)
+      const hasFileHelper = allConvs.some(c => c.address === 'file-helper')
+
+      const newDefaults = []
+
+      // 1. File Transfer Assistant
+      if (!hasFileHelper) {
+        newDefaults.push({
+          id: 'file-helper',
+          address: 'file-helper',
           username: 'File Transfer Assistant',
           avatar: '📁',
-          lastMessage: 'Send files to yourself',
+          lastMessage: 'Your cloud storage',
           timestamp: Date.now(),
+          type: 'direct',
+          unread: 0,
+          isSystem: true
+        })
+      }
+
+      // 2. Self Chat
+      if (!hasSelf && userAddress) {
+        newDefaults.push({
+          address: userAddress,
+          username: UserProfileService.getDisplayName(userAddress) || 'Me', // Use display name or "Me"
+          avatar: UserProfileService.getDisplayAvatar(userAddress) || '👤',
+          lastMessage: 'Message yourself',
+          timestamp: Date.now() - 1000, // Put slightly behind file helper
           type: 'direct',
           unread: 0,
           isSelf: true
         })
       }
 
-      const sorted = allConvs.sort((a, b) => {
+      const allWithDefaults = [...newDefaults, ...allConvs]
+
+      const sorted = allWithDefaults.sort((a, b) => {
         // Always keep File Transfer Assistant at top if pinned (optional logic)
         // For now just sort by time
         return b.timestamp - a.timestamp
@@ -160,6 +182,29 @@ const ChatList = ({ user }) => {
   // Handle start chat from NewChatDialog
   const handleStartChat = (chatData) => {
     if (chatData.type === 'direct') {
+      // Pre-create conversation in localStorage if it doesn't exist
+      const conversationsKey = 'dchat_conversations'
+      const stored = localStorage.getItem(conversationsKey)
+      const convs = stored ? JSON.parse(stored) : []
+
+      const exists = convs.some(c => c.address.toLowerCase() === chatData.address.toLowerCase())
+
+      if (!exists) {
+        const newConv = {
+          address: chatData.address,
+          username: chatData.contact?.name || UserProfileService.getDisplayName(chatData.address),
+          avatar: chatData.contact?.avatar || UserProfileService.getDisplayAvatar(chatData.address).emoji || '👤',
+          lastMessage: 'New conversation',
+          timestamp: Date.now(),
+          type: 'direct',
+          unread: 0
+        }
+        convs.unshift(newConv)
+        localStorage.setItem(conversationsKey, JSON.stringify(convs))
+        // Update local state immediately
+        setConversations(convs)
+      }
+
       navigate(`/chat/${chatData.address}`)
     }
   }
@@ -179,13 +224,12 @@ const ChatList = ({ user }) => {
     const day = 24 * hour
 
     if (diff < minute) return 'Just now'
-    if (diff < hour) return `${Math.floor(diff / minute)} minutes ago`
-    if (diff < day) return `${Math.floor(diff / hour)} hours ago`
+    if (diff < hour) return `${Math.floor(diff / minute)}m`
+    if (diff < day) return `${Math.floor(diff / hour)}h`
     return new Date(timestamp).toLocaleDateString()
   }
 
-  // Render conversation item
-
+  // Render conversation item - forced update v2
   const renderConversation = (conv) => (
     <div
       key={conv.address}
@@ -194,7 +238,7 @@ const ChatList = ({ user }) => {
     >
       <div className="relative">
         <div className={`w-12 h-12 rounded-full ${conv.isSelf ? 'bg-blue-100 text-blue-600' :
-            conv.type === 'group' ? 'bg-purple-100 text-purple-600' : 'bg-gray-200'
+          conv.type === 'group' ? 'bg-purple-100 text-purple-600' : 'bg-gray-200'
           } flex items-center justify-center text-2xl`}>
           {conv.avatar}
         </div>
