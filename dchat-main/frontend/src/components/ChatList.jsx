@@ -464,7 +464,7 @@ const ChatList = ({ user }) => {
           avatar: conv.avatar
         }))}
       />
-    </div >
+    </div>
   )
 }
 
