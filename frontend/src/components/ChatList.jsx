@@ -20,10 +20,10 @@ const ChatList = ({ user }) => {
   const navigate = useNavigate()
   const { account } = useWeb3()
   const { success } = useToast()
-  
+
   // useWeb3 accountTODO: Translate {t('or_option')}user.walletAddress
   const userAddress = account || user?.walletAddress
-  
+
   const [conversations, setConversations] = useState([])
   const [filteredConversations, setFilteredConversations] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
@@ -59,14 +59,14 @@ const ChatList = ({ user }) => {
 
   useEffect(() => {
     loadMyProfile()
-    
+
     // TODO: Translate {t('listen_profile_update_event')}
     const handleProfileUpdate = (e) => {
       if (e.detail.address.toLowerCase() === userAddress?.toLowerCase()) {
         loadMyProfile()
       }
     }
-    
+
     window.addEventListener('profileUpdated', handleProfileUpdate)
     return () => window.removeEventListener('profileUpdated', handleProfileUpdate)
   }, [userAddress])
@@ -76,7 +76,7 @@ const ChatList = ({ user }) => {
     const handleContactAdded = () => {
       loadConversations()
     }
-    
+
     window.addEventListener('contactAdded', handleContactAdded)
     return () => window.removeEventListener('contactAdded', handleContactAdded)
   }, [userAddress])
@@ -84,7 +84,7 @@ const ChatList = ({ user }) => {
   // TODO: Translate {t('load_chat_list')}
   useEffect(() => {
     loadConversations()
-    
+
     // TODO: Translate {t('per_message')}5TODO: Translate {t('refresh_every_second')}
     const interval = setInterval(loadConversations, 5000)
     return () => clearInterval(interval)
@@ -96,7 +96,7 @@ const ChatList = ({ user }) => {
       const conversationsKey = 'dchat_conversations'
       const stored = localStorage.getItem(conversationsKey)
       const convs = stored ? JSON.parse(stored) : []
-      
+
       // Load groups
       const groups = GroupService.getAllGroups(userAddress)
       const groupConvs = groups.map(g => ({
@@ -112,7 +112,7 @@ const ChatList = ({ user }) => {
 
       // Merge and sort
       const allConvs = [...convs, ...groupConvs]
-      
+
       // Add File Transfer Assistant if not present
       const hasSelfChat = allConvs.some(c => c.address === userAddress)
       if (!hasSelfChat && userAddress) {
@@ -133,7 +133,7 @@ const ChatList = ({ user }) => {
         // For now just sort by time
         return b.timestamp - a.timestamp
       })
-      
+
       setConversations(sorted)
       setFilteredConversations(sorted)
     } catch (err) {
@@ -173,19 +173,19 @@ const ChatList = ({ user }) => {
   const formatTime = (timestamp) => {
     const now = Date.now()
     const diff = now - timestamp
-    
+
     const minute = 60 * 1000
     const hour = 60 * minute
     const day = 24 * hour
-    
+
     if (diff < minute) return 'Just now'
-        if (diff < hour) return `${Math.floor(diff / minute)} minutes ago`
-        if (diff < day) return `${Math.floor(diff / hour)} hours ago`
-        return new Date(timestamp).toLocaleDateString()
+    if (diff < hour) return `${Math.floor(diff / minute)} minutes ago`
+    if (diff < day) return `${Math.floor(diff / hour)} hours ago`
+    return new Date(timestamp).toLocaleDateString()
   }
 
-    // Render conversation item
-  
+  // Render conversation item
+
   const renderConversation = (conv) => (
     <div
       key={conv.address}
@@ -193,10 +193,9 @@ const ChatList = ({ user }) => {
       className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer border-b"
     >
       <div className="relative">
-        <div className={`w-12 h-12 rounded-full ${
-          conv.isSelf ? 'bg-blue-100 text-blue-600' : 
-          conv.type === 'group' ? 'bg-purple-100 text-purple-600' : 'bg-gray-200'
-        } flex items-center justify-center text-2xl`}>
+        <div className={`w-12 h-12 rounded-full ${conv.isSelf ? 'bg-blue-100 text-blue-600' :
+            conv.type === 'group' ? 'bg-purple-100 text-purple-600' : 'bg-gray-200'
+          } flex items-center justify-center text-2xl`}>
           {conv.avatar}
         </div>
         {/* Online status badge - only for direct chats */}
@@ -226,8 +225,10 @@ const ChatList = ({ user }) => {
         </p>
       </div>
     </div>
-)
-    
+  )
+
+  return (
+    <div className="flex flex-col h-full bg-white">
       <div className="px-4 py-3 border-b">
         <div className="flex items-center justify-between mb-3">
           <h1 className="text-2xl font-bold">Chats</h1>
@@ -284,9 +285,9 @@ const ChatList = ({ user }) => {
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-full bg-white bg-opacity-20 flex items-center justify-center text-2xl overflow-hidden">
             {myProfile?.avatar?.type === 'ipfs' && myProfile?.avatar?.url ? (
-              <img 
-                src={myProfile.avatar.url} 
-                alt="Avatar" 
+              <img
+                src={myProfile.avatar.url}
+                alt="Avatar"
                 className="w-full h-full object-cover"
               />
             ) : (
@@ -362,7 +363,7 @@ const ChatList = ({ user }) => {
           <Plus className="w-4 h-4 mr-2" />
           Create Group
         </Button>
-        
+
         <Dialog>
           <DialogTrigger asChild>
             <Button variant="ghost" className="w-full text-gray-600">
@@ -376,21 +377,21 @@ const ChatList = ({ user }) => {
         </Dialog>
       </div>
 
-       {/* Dialogs */}
-      <QRCodeDialog 
-        isOpen={showQRCode} 
-        onClose={() => setShowQRCode(false)} 
+      {/* Dialogs */}
+      <QRCodeDialog
+        isOpen={showQRCode}
+        onClose={() => setShowQRCode(false)}
         address={userAddress}
       />
-      <ScanQRDialog 
-        isOpen={showScan} 
-        onClose={() => setShowScan(false)} 
+      <ScanQRDialog
+        isOpen={showScan}
+        onClose={() => setShowScan(false)}
       />
       <NFCDialog
         isOpen={showNFC}
         onClose={() => setShowNFC(false)}
       />
-      
+
       <EditProfileDialog
         isOpen={showProfile}
         onClose={() => {
@@ -400,7 +401,7 @@ const ChatList = ({ user }) => {
         }}
         address={userAddress}
       />
-      
+
       <CreateGroupDialog
         open={showCreateGroup}
         onOpenChange={setShowCreateGroup}
