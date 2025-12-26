@@ -561,184 +561,185 @@ const ChatRoom = () => {
           <p className="text-gray-600 mb-4">Please connect your wallet</p>
           <Button onClick={() => navigate('/login')}>Connect Wallet</Button>
         </div>
-        )
+      </div>
+    )
   }
 
-        const isFileTransfer = recipientAddress === account
+  const isFileTransfer = recipientAddress === account
 
-        return (
-        <div className="flex flex-col h-full bg-background">
-          {/* Header */}
-          <div className={`flex items-center justify-between px-4 py-3 border-b border-border/40 backdrop-blur-xl sticky top-0 z-10 ${isFileTransfer ? 'bg-blue-50/80 dark:bg-blue-950/20' : 'bg-background/80'
-            }`}>
-            <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" onClick={() => navigate('/')} className="hover:bg-accent/50">
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-              <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-sm ring-2 ring-offset-2 ring-offset-background ${isFileTransfer
-                  ? 'bg-blue-100 text-blue-600 ring-blue-100'
-                  : 'bg-secondary text-secondary-foreground ring-transparent'
-                  }`}>
-                  {isFileTransfer ? '📂' : (recipientProfile?.avatar || '👤')}
-                </div>
-                <div>
-                  <h2 className="font-semibold flex items-center gap-2">
-                    {isFileTransfer ? 'File Transfer' : (recipientProfile?.username || 'Loading...')}
-                    {isFileTransfer && <span className="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded-full font-medium">ME</span>}
-                  </h2>
-                  <p className="text-xs text-muted-foreground">
-                    {isFileTransfer ? 'Send files to yourself' : (recipientProfile?.company || 'Online')}
-                  </p>
-                </div>
-              </div>
+  return (
+    <div className="flex flex-col h-full bg-background">
+      {/* Header */}
+      <div className={`flex items-center justify-between px-4 py-3 border-b border-border/40 backdrop-blur-xl sticky top-0 z-10 ${isFileTransfer ? 'bg-blue-50/80 dark:bg-blue-950/20' : 'bg-background/80'
+        }`}>
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/')} className="hover:bg-accent/50">
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-sm ring-2 ring-offset-2 ring-offset-background ${isFileTransfer
+              ? 'bg-blue-100 text-blue-600 ring-blue-100'
+              : 'bg-secondary text-secondary-foreground ring-transparent'
+              }`}>
+              {isFileTransfer ? '📂' : (recipientProfile?.avatar || '👤')}
             </div>
-            <div className="flex items-center gap-2">
-              <button className="p-2 hover:bg-gray-100 rounded-full">
-                <Phone className="w-5 h-5" />
-              </button>
-              <button className="p-2 hover:bg-gray-100 rounded-full">
-                <Video className="w-5 h-5" />
-              </button>
-              <button
-                onClick={() => setShowMenu(!showMenu)}
-                className="p-2 hover:bg-gray-100 rounded-full"
-              >
-                <MoreVertical className="w-5 h-5" />
-              </button>
+            <div>
+              <h2 className="font-semibold flex items-center gap-2">
+                {isFileTransfer ? 'File Transfer' : (recipientProfile?.username || 'Loading...')}
+                {isFileTransfer && <span className="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded-full font-medium">ME</span>}
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                {isFileTransfer ? 'Send files to yourself' : (recipientProfile?.company || 'Online')}
+              </p>
             </div>
           </div>
-
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto px-4 py-4">
-            {loading ? (
-              <div className="flex items-center justify-center h-full">
-                <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
-              </div>
-            ) : messages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-center">
-                <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center text-4xl mb-4">
-                  {recipientProfile?.avatar || '👤'}
-                </div>
-                <h3 className="font-semibold text-lg mb-2">
-                  {recipientProfile?.username}
-                </h3>
-                <p className="text-gray-500 text-sm">
-                  Start your conversation with {recipientProfile?.username}
-                </p>
-              </div>
-            ) : (
-              <>
-                {messages.map(renderMessage)}
-                <div ref={messagesEndRef} />
-              </>
-            )}
-          </div>
-
-          {/* Upload Progress */}
-          {uploading && (
-            <div className="px-4 py-2 bg-blue-50 border-t border-blue-100">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-sm text-blue-900">Uploading...</span>
-                <span className="text-sm text-blue-900">{uploadProgress.toFixed(0)}%</span>
-              </div>
-              <div className="w-full bg-blue-200 rounded-full h-2">
-                <div
-                  className="bg-blue-600 h-2 rounded-full transition-all"
-                  style={{ width: `${uploadProgress}%` }}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Input */}
-          <div className="px-4 py-3 border-t bg-white">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-                className="p-2 hover:bg-gray-100 rounded-full disabled:opacity-50"
-                title="Attach file"
-              >
-                <Paperclip className="w-5 h-5" />
-              </button>
-              <button
-                onClick={() => setShowPaymentDialog(true)}
-                className="p-2 hover:bg-gray-100 rounded-full"
-                title="Send payment"
-              >
-                <DollarSign className="w-5 h-5" />
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                onChange={handleFileUpload}
-                className="hidden"
-                accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.txt,.md"
-              />
-              <input
-                type="text"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                placeholder="Type a message..."
-                disabled={sending || uploading}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-black disabled:opacity-50"
-              />
-              <button
-                onClick={handleSendMessage}
-                disabled={!message.trim() || sending || uploading}
-                className="p-2 bg-black text-white rounded-full hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {sending ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <Send className="w-5 h-5" />
-                )}
-              </button>
-            </div>
-          </div>
-
-          {/* Upgrade Dialog */}
-          <UpgradeDialog
-            isOpen={showUpgradeDialog}
-            onClose={() => setShowUpgradeDialog(false)}
-            title={upgradeMessage.title}
-            description={upgradeMessage.description}
-          />
-
-          {/* Payment Dialog */}
-          <PaymentDialog
-            open={showPaymentDialog}
-            onClose={() => setShowPaymentDialog(false)}
-            onSuccess={(paymentData) => {
-              setShowPaymentDialog(false)
-              success('Payment Created', 'Payment escrow created successfully')
-              // Optionally send a payment message in chat
-              const paymentMessage = {
-                id: Date.now().toString(),
-                text: `Sent ${paymentData.amount} ETH - ${paymentData.description}`,
-                sender: 'me',
-                timestamp: new Date().toLocaleTimeString('en-US', {
-                  hour: '2-digit',
-                  minute: '2-digit'
-                }),
-                isRead: false,
-                type: 'payment',
-                amount: paymentData.amount,
-                escrowId: paymentData.escrowId,
-                status: 'pending'
-              }
-              const updatedMessages = [...messages, paymentMessage]
-              setMessages(updatedMessages)
-              const storageKey = `dchat_messages_${account}_${recipientAddress}`
-              localStorage.setItem(storageKey, JSON.stringify(updatedMessages))
-            }}
-            recipientAddress={recipientAddress}
-            userAddress={account}
-          />
         </div>
-        )
+        <div className="flex items-center gap-2">
+          <button className="p-2 hover:bg-gray-100 rounded-full">
+            <Phone className="w-5 h-5" />
+          </button>
+          <button className="p-2 hover:bg-gray-100 rounded-full">
+            <Video className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => setShowMenu(!showMenu)}
+            className="p-2 hover:bg-gray-100 rounded-full"
+          >
+            <MoreVertical className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto px-4 py-4">
+        {loading ? (
+          <div className="flex items-center justify-center h-full">
+            <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+          </div>
+        ) : messages.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full text-center">
+            <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center text-4xl mb-4">
+              {recipientProfile?.avatar || '👤'}
+            </div>
+            <h3 className="font-semibold text-lg mb-2">
+              {recipientProfile?.username}
+            </h3>
+            <p className="text-gray-500 text-sm">
+              Start your conversation with {recipientProfile?.username}
+            </p>
+          </div>
+        ) : (
+          <>
+            {messages.map(renderMessage)}
+            <div ref={messagesEndRef} />
+          </>
+        )}
+      </div>
+
+      {/* Upload Progress */}
+      {uploading && (
+        <div className="px-4 py-2 bg-blue-50 border-t border-blue-100">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-sm text-blue-900">Uploading...</span>
+            <span className="text-sm text-blue-900">{uploadProgress.toFixed(0)}%</span>
+          </div>
+          <div className="w-full bg-blue-200 rounded-full h-2">
+            <div
+              className="bg-blue-600 h-2 rounded-full transition-all"
+              style={{ width: `${uploadProgress}%` }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Input */}
+      <div className="px-4 py-3 border-t bg-white">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="p-2 hover:bg-gray-100 rounded-full disabled:opacity-50"
+            title="Attach file"
+          >
+            <Paperclip className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => setShowPaymentDialog(true)}
+            className="p-2 hover:bg-gray-100 rounded-full"
+            title="Send payment"
+          >
+            <DollarSign className="w-5 h-5" />
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            onChange={handleFileUpload}
+            className="hidden"
+            accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.txt,.md"
+          />
+          <input
+            type="text"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+            placeholder="Type a message..."
+            disabled={sending || uploading}
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-black disabled:opacity-50"
+          />
+          <button
+            onClick={handleSendMessage}
+            disabled={!message.trim() || sending || uploading}
+            className="p-2 bg-black text-white rounded-full hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {sending ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <Send className="w-5 h-5" />
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Upgrade Dialog */}
+      <UpgradeDialog
+        isOpen={showUpgradeDialog}
+        onClose={() => setShowUpgradeDialog(false)}
+        title={upgradeMessage.title}
+        description={upgradeMessage.description}
+      />
+
+      {/* Payment Dialog */}
+      <PaymentDialog
+        open={showPaymentDialog}
+        onClose={() => setShowPaymentDialog(false)}
+        onSuccess={(paymentData) => {
+          setShowPaymentDialog(false)
+          success('Payment Created', 'Payment escrow created successfully')
+          // Optionally send a payment message in chat
+          const paymentMessage = {
+            id: Date.now().toString(),
+            text: `Sent ${paymentData.amount} ETH - ${paymentData.description}`,
+            sender: 'me',
+            timestamp: new Date().toLocaleTimeString('en-US', {
+              hour: '2-digit',
+              minute: '2-digit'
+            }),
+            isRead: false,
+            type: 'payment',
+            amount: paymentData.amount,
+            escrowId: paymentData.escrowId,
+            status: 'pending'
+          }
+          const updatedMessages = [...messages, paymentMessage]
+          setMessages(updatedMessages)
+          const storageKey = `dchat_messages_${account}_${recipientAddress}`
+          localStorage.setItem(storageKey, JSON.stringify(updatedMessages))
+        }}
+        recipientAddress={recipientAddress}
+        userAddress={account}
+      />
+    </div>
+  )
 }
 
-        export default ChatRoom
+export default ChatRoom
