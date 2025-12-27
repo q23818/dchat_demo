@@ -13,6 +13,9 @@ const LoginScreen = ({ onLogin }) => {
   const [loginMethod, setLoginMethod] = useState('select')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
+  const [verificationCode, setVerificationCode] = useState('')
+  const [isCodeSent, setIsCodeSent] = useState(false)
+  const [timer, setTimer] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
 
@@ -92,16 +95,58 @@ const LoginScreen = ({ onLogin }) => {
   }
 
   // Phone Login (Simplified version - no backend required)
+  const handleSendCode = async () => {
+    if (!phone || phone.length < 10) {
+      setError('Please enter a valid phone number')
+      return
+    }
+    setError('')
+    setIsSubmitting(true)
+
+    // Simulate API call
+    setTimeout(() => {
+      setIsSubmitting(false)
+      setIsCodeSent(true)
+      setTimer(60)
+
+      console.log('Verification Code: 123456')
+      alert('Test Code: 123456')
+
+      const interval = setInterval(() => {
+        setTimer((prev) => {
+          if (prev <= 1) {
+            clearInterval(interval)
+            return 0
+          }
+          return prev - 1
+        })
+      }, 1000)
+    }, 1500)
+  }
+
   const handlePhoneLogin = async (e) => {
-    e.preventDefault()
+    e && e.preventDefault()
+
+    if (!isCodeSent) {
+      handleSendCode()
+      return
+    }
+
+    if (!verificationCode) {
+      setError('Please enter verification code')
+      return
+    }
+
     setIsSubmitting(true)
     setError('')
 
     try {
-      if (!phone || phone.length < 10) {
-        throw new Error('Please enter a valid phone number')
+      // Very simple mock verification
+      if (verificationCode !== '123456') {
+        throw new Error('Invalid verification code')
       }
 
+      // Generate a deterministic wallet address from phone number
       const hash = phone.split('').reduce((acc, char) => {
         return ((acc << 5) - acc) + char.charCodeAt(0)
       }, 0)
@@ -129,6 +174,9 @@ const LoginScreen = ({ onLogin }) => {
     setLoginMethod('select')
     setEmail('')
     setPhone('')
+    setVerificationCode('')
+    setIsCodeSent(false)
+    setTimer(0)
     setError('')
   }
 
@@ -341,35 +389,65 @@ const LoginScreen = ({ onLogin }) => {
             )}
 
             <form onSubmit={handlePhoneLogin} className="space-y-4">
-              <div>
+              <div className="space-y-4">
                 <input
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+1 (555) 000-0000"
+                  placeholder="Phone Number (e.g. 13800138000)"
                   className="w-full h-14 px-4 border-2 border-gray-200 rounded-full focus:border-black focus:outline-none transition-colors text-base"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || isCodeSent}
                   required
                 />
+
+                {isCodeSent && (
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={verificationCode}
+                      onChange={(e) => setVerificationCode(e.target.value)}
+                      placeholder="Verification Code (Try: 123456)"
+                      className="w-full h-14 px-4 border-2 border-gray-200 rounded-full focus:border-black focus:outline-none transition-colors text-base"
+                      disabled={isSubmitting}
+                      required
+                    />
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-medium">
+                      {timer > 0 ? `${timer}s` : ''}
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full h-14 bg-black hover:bg-gray-800 text-white rounded-full text-base font-medium flex items-center justify-center gap-3 transition-all duration-200"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Logging in...
-                  </>
-                ) : (
-                  <>
-                    <Phone className="w-5 h-5" />
-                    Continue with Phone
-                  </>
+              <div className="flex gap-3">
+                {isCodeSent && timer === 0 && (
+                  <Button
+                    type="button"
+                    onClick={handleSendCode}
+                    disabled={isSubmitting}
+                    variant="outline"
+                    className="flex-1 h-14 rounded-full"
+                  >
+                    Resend
+                  </Button>
                 )}
-              </Button>
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex-1 h-14 bg-black hover:bg-gray-800 text-white rounded-full text-base font-medium flex items-center justify-center gap-3 transition-all duration-200"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      {isCodeSent ? 'Verifying...' : 'Sending...'}
+                    </>
+                  ) : (
+                    <>
+                      <Phone className="w-5 h-5" />
+                      {isCodeSent ? 'Login' : 'Get Code'}
+                    </>
+                  )}
+                </Button>
+              </div>
             </form>
 
             <p className="mt-6 text-xs text-center text-gray-400">
