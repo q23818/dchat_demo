@@ -15,13 +15,13 @@ const LoginScreen = ({ onLogin }) => {
   const [phone, setPhone] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
-  
-  const { 
-    account, 
-    isConnecting, 
-    error: walletError, 
-    isMetaMaskInstalled, 
-    connectWallet 
+
+  const {
+    account,
+    isConnecting,
+    error: walletError,
+    isMetaMaskInstalled,
+    connectWallet
   } = useWeb3()
 
   // Web3 Wallet Login
@@ -29,13 +29,13 @@ const LoginScreen = ({ onLogin }) => {
     try {
       setError('')
       setIsSubmitting(true)
-      
+
       const walletAddress = await connectWallet()
-      
+
       if (walletAddress) {
         const authToken = `web3_${walletAddress}_${Date.now()}`
         localStorage.setItem('authToken', authToken)
-        
+
         const userData = {
           walletAddress: walletAddress,
           username: `User_${walletAddress.slice(2, 8)}`,
@@ -44,7 +44,7 @@ const LoginScreen = ({ onLogin }) => {
           web3Enabled: true,
           createdAt: new Date().toISOString()
         }
-        
+
         onLogin(userData)
       } else {
         throw new Error('Failed to connect wallet. Please try again.')
@@ -62,7 +62,7 @@ const LoginScreen = ({ onLogin }) => {
     e.preventDefault()
     setIsSubmitting(true)
     setError('')
-    
+
     try {
       if (!email || !email.includes('@')) {
         throw new Error('Please enter a valid email address')
@@ -72,7 +72,7 @@ const LoginScreen = ({ onLogin }) => {
         return ((acc << 5) - acc) + char.charCodeAt(0)
       }, 0)
       const mockAddress = '0x' + Math.abs(hash).toString(16).padStart(40, '0').slice(0, 40)
-      
+
       const userData = {
         email,
         username: email.split('@')[0],
@@ -81,7 +81,7 @@ const LoginScreen = ({ onLogin }) => {
         web3Enabled: false,
         createdAt: new Date().toISOString()
       }
-      
+
       onLogin(userData)
     } catch (error) {
       console.error('Email login error:', error)
@@ -96,7 +96,7 @@ const LoginScreen = ({ onLogin }) => {
     e.preventDefault()
     setIsSubmitting(true)
     setError('')
-    
+
     try {
       if (!phone || phone.length < 10) {
         throw new Error('Please enter a valid phone number')
@@ -106,7 +106,7 @@ const LoginScreen = ({ onLogin }) => {
         return ((acc << 5) - acc) + char.charCodeAt(0)
       }, 0)
       const mockAddress = '0x' + Math.abs(hash).toString(16).padStart(40, '0').slice(0, 40)
-      
+
       const userData = {
         phone,
         username: `User_${phone.slice(-4)}`,
@@ -115,7 +115,7 @@ const LoginScreen = ({ onLogin }) => {
         web3Enabled: false,
         createdAt: new Date().toISOString()
       }
-      
+
       onLogin(userData)
     } catch (error) {
       console.error('Phone login error:', error)
@@ -142,7 +142,7 @@ const LoginScreen = ({ onLogin }) => {
             <DchatLogo size={120} className="text-white mb-8" />
             <h1 className="text-5xl font-bold text-white mb-4">Dchat</h1>
             <p className="text-xl text-gray-300">
-              Decentralized Signature
+              Decentralized Chat
             </p>
           </div>
         </div>
@@ -228,7 +228,7 @@ const LoginScreen = ({ onLogin }) => {
           {/* Terms */}
           <p className="w-full max-w-sm mt-8 text-xs text-center text-gray-400">
             By connecting your wallet, you agree to our{' '}
-                  <a href="/terms" className="text-black hover:underline">Terms of Service</a>
+            <a href="/terms" className="text-black hover:underline">Terms of Service</a>
             {' '}and{' '}
             <a href="/privacy" className="text-black hover:underline">Privacy Policy</a>
           </p>
@@ -305,8 +305,8 @@ const LoginScreen = ({ onLogin }) => {
   // Email Login Screen
   if (loginMethod === 'email') {
     return (
-      <EmailPasswordLogin 
-        onLogin={onLogin} 
+      <EmailPasswordLogin
+        onLogin={onLogin}
         onBack={resetLoginFlow}
       />
     )

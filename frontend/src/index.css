@@ -96,4 +96,9 @@
   body {
     @apply bg-background text-foreground antialiased;
   }
+  /* Prevent text overflow */
+  h1, h2, h3, h4, h5, h6, p, span, div {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+  }
 }
