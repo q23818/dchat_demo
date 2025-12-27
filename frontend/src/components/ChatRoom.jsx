@@ -22,6 +22,7 @@ const ChatRoom = () => {
 
   const navigate = useNavigate()
   const { id: recipientAddress } = useParams()
+  const isFileTransfer = recipientAddress === 'file-helper' || recipientAddress === account
   const { account, provider, signer, isConnected } = useWeb3()
   const { success, error: showError, info } = useToast()
 
@@ -615,7 +616,7 @@ const ChatRoom = () => {
     )
   }
 
-  const isFileTransfer = recipientAddress === account
+
 
   return (
     <div className="flex flex-col h-full bg-background">
@@ -645,12 +646,22 @@ const ChatRoom = () => {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button className="p-2 hover:bg-gray-100 rounded-full">
-            <Phone className="w-5 h-5" />
-          </button>
-          <button className="p-2 hover:bg-gray-100 rounded-full">
-            <Video className="w-5 h-5" />
-          </button>
+          {!isFileTransfer && (
+            <>
+              <button
+                onClick={() => info('Coming Soon', 'Voice calls will be available in the next update')}
+                className="p-2 hover:bg-gray-100 rounded-full"
+              >
+                <Phone className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => info('Coming Soon', 'Video calls will be available in the next update')}
+                className="p-2 hover:bg-gray-100 rounded-full"
+              >
+                <Video className="w-5 h-5" />
+              </button>
+            </>
+          )}
           <button
             onClick={() => setShowMenu(!showMenu)}
             className="p-2 hover:bg-gray-100 rounded-full"
@@ -713,13 +724,15 @@ const ChatRoom = () => {
           >
             <Paperclip className="w-5 h-5" />
           </button>
-          <button
-            onClick={() => setShowPaymentDialog(true)}
-            className="p-2 hover:bg-gray-100 rounded-full"
-            title="Send payment"
-          >
-            <DollarSign className="w-5 h-5" />
-          </button>
+          {!isFileTransfer && (
+            <button
+              onClick={() => setShowPaymentDialog(true)}
+              className="p-2 hover:bg-gray-100 rounded-full"
+              title="Send payment"
+            >
+              <DollarSign className="w-5 h-5" />
+            </button>
+          )}
           <input
             ref={fileInputRef}
             type="file"

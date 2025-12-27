@@ -2,7 +2,7 @@ import { Routes, Route, useLocation } from 'react-router-dom'
 import BottomNavigation from './BottomNavigation'
 import ChatList from './ChatList'
 import ChatRoom from './ChatRoom'
-import ChatInterface from './ChatInterface'
+
 import Moments from './Moments'
 import Projects from './Projects'
 import Profile from './Profile'
