@@ -20,7 +20,7 @@ const GroupChat = () => {
   const { id: groupId } = useParams()
   const { account } = useWeb3()
   const { success, error: showError } = useToast()
-  
+
   const [message, setMessage] = useState('')
   const [messages, setMessages] = useState([])
   const [loading, setLoading] = useState(true)
@@ -31,7 +31,7 @@ const GroupChat = () => {
   const [showMembers, setShowMembers] = useState(false)
   const [showAddMember, setShowAddMember] = useState(false)
   const [newMemberAddress, setNewMemberAddress] = useState('')
-  
+
   const messagesEndRef = useRef(null)
   const fileInputRef = useRef(null)
 
@@ -40,10 +40,10 @@ const GroupChat = () => {
     if (groupId) {
       loadGroupInfo()
       loadMessages()
-      
+
       // Join socket room
       socketService.joinRoom(`group_${groupId}`)
-      
+
       // Listen for new messages
       const unsubscribe = socketService.onMessage((data) => {
         if (data.room_id === `group_${groupId}` && data.user_id !== account) {
@@ -52,7 +52,7 @@ const GroupChat = () => {
             text: data.message,
             sender: data.user_id,
             senderName: UserProfileService.getDisplayName(data.user_id),
-            senderAvatar: UserProfileService.getDisplayAvatar(data.user_id),
+            senderAvatar: UserProfileService.getDisplayAvatar(data.user_id)?.emoji || UserProfileService.getDefaultAvatar(data.user_id),
             timestamp: new Date(data.timestamp).toLocaleTimeString(),
             type: data.type || 'text',
             fileUrl: data.fileUrl,
@@ -62,7 +62,7 @@ const GroupChat = () => {
           setMessages(prev => [...prev, newMessage])
         }
       })
-      
+
       return () => {
         unsubscribe()
         socketService.leaveRoom(`group_${groupId}`)
@@ -75,7 +75,7 @@ const GroupChat = () => {
       const groupsKey = 'dchat_groups'
       const stored = localStorage.getItem(groupsKey)
       const groups = stored ? JSON.parse(stored) : []
-      
+
       const group = groups.find(g => g.id === groupId)
       if (group) {
         setGroupInfo(group)
@@ -121,7 +121,7 @@ const GroupChat = () => {
       )
 
       setMessages([...messages, newMessage])
-      
+
       // Send via Socket.IO
       socketService.sendMessage(`group_${groupId}`, messageText, newMessage.id)
 
@@ -143,10 +143,10 @@ const GroupChat = () => {
       // Upload to IPFS
       const ipfsHash = await ipfsService.uploadFile(file)
       const fileUrl = ipfsService.getGatewayUrl(ipfsHash)
-      
+
       // Construct file message
       const messageText = `[FILE]${file.name}|${ipfsHash}|${file.type}|${file.size}`
-      
+
       const newMessage = await GroupMessageService.sendMessage(
         groupId,
         account,
@@ -161,7 +161,7 @@ const GroupChat = () => {
       )
 
       setMessages([...messages, newMessage])
-      
+
       // Send via Socket.IO with file metadata
       socketService.sendMessage(`group_${groupId}`, messageText, newMessage.id, false, {
         type: 'file',
@@ -200,7 +200,7 @@ const GroupChat = () => {
     const newMember = {
       address: newMemberAddress,
       username: UserProfileService.getDisplayName(newMemberAddress),
-      avatar: UserProfileService.getDisplayAvatar(newMemberAddress),
+      avatar: UserProfileService.getDisplayAvatar(newMemberAddress)?.emoji || UserProfileService.getDefaultAvatar(newMemberAddress),
       role: 'member',
       joinedAt: Date.now()
     }
@@ -213,7 +213,7 @@ const GroupChat = () => {
     const stored = localStorage.getItem(groupsKey)
     const groups = stored ? JSON.parse(stored) : []
     const groupIndex = groups.findIndex(g => g.id === groupId)
-    
+
     if (groupIndex >= 0) {
       groups[groupIndex].members = updatedMembers
       groups[groupIndex].memberCount = updatedMembers.length
@@ -245,11 +245,10 @@ const GroupChat = () => {
         )}
         <div className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
           <div
-            className={`max-w-[70%] rounded-2xl overflow-hidden ${
-              isMe
+            className={`max-w-[70%] rounded-2xl overflow-hidden ${isMe
                 ? 'bg-black text-white rounded-br-sm'
                 : 'bg-gray-100 text-gray-900 rounded-bl-sm'
-            }`}
+              }`}
           >
             {isFile ? (
               <div className="p-3">
@@ -258,9 +257,9 @@ const GroupChat = () => {
                     <img src={msg.fileUrl} alt={msg.fileName} className="max-w-full rounded-lg" />
                   </a>
                 ) : (
-                  <a 
-                    href={msg.fileUrl} 
-                    target="_blank" 
+                  <a
+                    href={msg.fileUrl}
+                    target="_blank"
                     rel="noopener noreferrer"
                     className={`flex items-center gap-3 ${isMe ? 'text-white' : 'text-gray-900'}`}
                   >
@@ -274,9 +273,9 @@ const GroupChat = () => {
               </div>
             ) : (
               <div className="px-4 py-2">
-                <div 
+                <div
                   className="text-sm whitespace-pre-wrap break-words"
-                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(msg.text) }} 
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(msg.text) }}
                 />
               </div>
             )}

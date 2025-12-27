@@ -9,16 +9,17 @@ const QRCodeDialog = ({ isOpen, onClose, address }) => {
   const { success } = useToast()
   const [copied, setCopied] = useState(false)
   const canvasRef = useRef(null)
-  
+
   const profile = UserProfileService.getProfile(address)
   const displayName = UserProfileService.getDisplayName(address)
-  const avatar = UserProfileService.getDisplayAvatar(address)
+  const avatarData = UserProfileService.getDisplayAvatar(address)
+  const avatarEmoji = avatarData?.emoji || UserProfileService.getDefaultAvatar(address)
 
   const qrData = JSON.stringify({
     type: 'dchat_contact',
     address: address,
     username: profile?.username || displayName,
-    avatar: avatar
+    avatar: avatarEmoji
   })
 
   const handleCopyAddress = async () => {
@@ -91,7 +92,7 @@ const QRCodeDialog = ({ isOpen, onClose, address }) => {
           {/* User Info */}
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center text-3xl">
-              {avatar}
+              {avatarEmoji}
             </div>
             <div className="flex-1">
               <h3 className="font-semibold text-lg text-gray-900">{displayName}</h3>
@@ -148,7 +149,7 @@ const QRCodeDialog = ({ isOpen, onClose, address }) => {
           {/* Instructions */}
           <div className="bg-blue-50 rounded-lg p-4">
             <p className="text-sm text-blue-900">
-              <strong>How to use:</strong> Share this QR code with others to let them add you as a contact. 
+              <strong>How to use:</strong> Share this QR code with others to let them add you as a contact.
               They can scan it with their DChat app to start chatting!
             </p>
           </div>

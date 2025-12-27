@@ -43,7 +43,7 @@ const NFCDialog = ({ isOpen, onClose }) => {
                   avatar: data.avatar,
                   addedAt: Date.now()
                 })
-                
+
                 success('NFC Contact Added', `Added ${data.username}`)
                 window.dispatchEvent(new CustomEvent('contactAdded'))
                 navigate(`/chat/${data.address}`)
@@ -74,13 +74,14 @@ const NFCDialog = ({ isOpen, onClose }) => {
     try {
       setIsWriting(true)
       const ndef = new NDEFReader()
-      
+
       const profile = UserProfileService.getProfile(account)
+      const avatarData = UserProfileService.getDisplayAvatar(account)
       const data = JSON.stringify({
         type: 'dchat_contact',
         address: account,
         username: UserProfileService.getDisplayName(account),
-        avatar: UserProfileService.getDisplayAvatar(account)
+        avatar: avatarData?.emoji || UserProfileService.getDefaultAvatar(account)
       })
 
       await ndef.write({
@@ -88,7 +89,7 @@ const NFCDialog = ({ isOpen, onClose }) => {
       })
 
       success('Ready to Share', 'Tap another device to share your profile')
-      
+
     } catch (err) {
       console.error(err)
       error('NFC Error', 'Failed to write NFC tag')
@@ -102,7 +103,7 @@ const NFCDialog = ({ isOpen, onClose }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-sm mx-4 relative">
-        <button 
+        <button
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
         >
@@ -121,17 +122,17 @@ const NFCDialog = ({ isOpen, onClose }) => {
 
         {isSupported ? (
           <div className="space-y-4">
-            <Button 
-              onClick={startScan} 
+            <Button
+              onClick={startScan}
               className="w-full flex items-center justify-center gap-2"
               disabled={isScanning}
             >
               <Wifi className="w-4 h-4" />
               {isScanning ? 'Scanning...' : 'Scan Friend\'s Device'}
             </Button>
-            
-            <Button 
-              variant="outline" 
+
+            <Button
+              variant="outline"
               onClick={shareProfile}
               className="w-full"
               disabled={isWriting}

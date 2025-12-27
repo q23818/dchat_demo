@@ -46,10 +46,12 @@ const ChatRoom = () => {
   useEffect(() => {
     if (recipientAddress) {
       const profile = UserProfileService.getProfile(recipientAddress)
+      const avatarData = UserProfileService.getDisplayAvatar(recipientAddress)
       setRecipientProfile({
         address: recipientAddress,
         username: UserProfileService.getDisplayName(recipientAddress),
-        avatar: UserProfileService.getDisplayAvatar(recipientAddress),
+        avatar: avatarData?.emoji || avatarData?.url || UserProfileService.getDefaultAvatar(recipientAddress),
+        avatarType: avatarData?.type || 'default',
         bio: profile?.bio || '',
         company: profile?.company || ''
       })

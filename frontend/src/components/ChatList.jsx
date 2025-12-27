@@ -41,7 +41,7 @@ const ChatList = ({ user }) => {
       const profile = UserProfileService.getProfile(userAddress)
       setMyProfile({
         username: UserProfileService.getDisplayName(userAddress),
-        avatar: UserProfileService.getDisplayAvatar(userAddress),
+        avatar: UserProfileService.getDisplayAvatar(userAddress)?.emoji || UserProfileService.getDefaultAvatar(userAddress),
         bio: profile?.bio || ''
       })
     }
@@ -139,7 +139,7 @@ const ChatList = ({ user }) => {
         newDefaults.push({
           address: userAddress,
           username: UserProfileService.getDisplayName(userAddress) || 'Me', // Use display name or "Me"
-          avatar: UserProfileService.getDisplayAvatar(userAddress) || '👤',
+          avatar: UserProfileService.getDisplayAvatar(userAddress)?.emoji || UserProfileService.getDefaultAvatar(userAddress),
           lastMessage: 'Message yourself',
           timestamp: Date.now() - 1000, // Put slightly behind file helper
           type: 'direct',
