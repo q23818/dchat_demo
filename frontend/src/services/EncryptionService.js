@@ -1,183 +1,298 @@
-import * as encryption from '../utils/encryption'
-import { UserIdentityService } from './UserIdentityService'
-
 /**
- * TODO: Translate '加密服务'
- * TODO: Translate '提供端到端加密功能'
+ * End-to-End Encryption Service for Dchat
+ * Uses Web Crypto API for RSA + AES hybrid encryption
  */
+
 class EncryptionService {
-  /**
-   * TODO: Translate '生成密钥对'
-   */
-  async generateKeyPair() {
-    return await encryption.generateKeyPair()
-  }
-
-  /**
-   * TODO: Translate '加密消息' (TODO: Translate '混合加密': RSA + AES)
-   * @param {string} message - TODO: Translate '要加密的消息'
-   * @param {string} recipientPublicKey - TODO: Translate '接收者公钥'
-   * @returns {Promise<{encryptedMessage: string, encryptedKey: string, iv: string}>}
-   */
-  async encryptMessage(message, recipientPublicKey) {
-    try {
-      // 1. TODO: Translate '生成随机' AES TODO: Translate '密钥'
-      const aesKey = await encryption.generateSymmetricKey()
-      
-      // 2. TODO: Translate '用' AES TODO: Translate '加密消息'
-      const { encrypted, iv } = await encryption.encryptWithSymmetricKey(message, aesKey)
-      
-      // 3. TODO: Translate '用接收者公钥加密' AES TODO: Translate '密钥'
-      const encryptedKey = await encryption.encryptMessage(aesKey, recipientPublicKey)
-      
-      return {
-        encryptedMessage: encrypted,
-        encryptedKey,
-        iv
-      }
-    } catch (error) {
-      console.error('Error encrypting message:', error)
-      throw error
+    constructor() {
+        this.keyPair = null;
+        this.publicKeyPem = null;
+        this.privateKeyPem = null;
     }
-  }
 
-  /**
-   * TODO: Translate '解密消息'
-   * @param {object} encryptedData - TODO: Translate '加密数据'
-   * @param {string} privateKey - TODO: Translate '私钥'
-   * @returns {Promise<string>} TODO: Translate '解密后的消息'
-   */
-  async decryptMessage(encryptedData, privateKey) {
-    try {
-      // 1. TODO: Translate '用私钥解密' AES TODO: Translate '密钥'
-      const aesKey = await encryption.decryptMessage(
-        encryptedData.encryptedKey,
-        privateKey
-      )
-      
-      // 2. TODO: Translate '用' AES TODO: Translate '密钥解密消息'
-      const message = await encryption.decryptWithSymmetricKey(
-        encryptedData.encryptedMessage,
-        aesKey,
-        encryptedData.iv
-      )
-      
-      return message
-    } catch (error) {
-      console.error('Error decrypting message:', error)
-      throw error
+    /**
+     * Generate RSA key pair for encryption
+     * @returns {Promise<{publicKey: string, privateKey: CryptoKey}>}
+     */
+    async generateKeyPair() {
+        try {
+            const keyPair = await crypto.subtle.generateKey(
+                {
+                    name: "RSA-OAEP",
+                    modulusLength: 2048,
+                    publicExponent: new Uint8Array([1, 0, 1]),
+                    hash: "SHA-256",
+                },
+                true,
+                ["encrypt", "decrypt"]
+            );
+
+            this.keyPair = keyPair;
+
+            // Export public key to PEM format
+            const publicKeyBuffer = await crypto.subtle.exportKey(
+                "spki",
+                keyPair.publicKey
+            );
+            this.publicKeyPem = this.arrayBufferToPem(publicKeyBuffer, "PUBLIC KEY");
+
+            // Store private key
+            this.privateKey = keyPair.privateKey;
+
+            return {
+                publicKey: this.publicKeyPem,
+                privateKey: keyPair.privateKey,
+            };
+        } catch (error) {
+            console.error("Error generating key pair:", error);
+            throw error;
+        }
     }
-  }
 
-  /**
-   * TODO: Translate '存储密钥对到本地'
-   * @param {string} address - TODO: Translate '钱包地址'
-   * @param {object} keyPair - TODO: Translate '密钥对'
-   */
-  storeKeyPair(address, keyPair) {
-    try {
-      const data = JSON.stringify(keyPair)
-      // TODO: Translate '简单加密'(TODO: Translate '实际应用中应该用密码加密')
-      const encrypted = btoa(data)
-      localStorage.setItem(`dchat_keys_${address}`, encrypted)
-    } catch (error) {
-      console.error('Error storing key pair:', error)
-      throw error
+    /**
+     * Import RSA public key from PEM string
+     * @param {string} pemKey - PEM formatted public key
+     * @returns {Promise<CryptoKey>}
+     */
+    async importPublicKey(pemKey) {
+        try {
+            const binaryKey = this.pemToArrayBuffer(pemKey);
+            return await crypto.subtle.importKey(
+                "spki",
+                binaryKey,
+                {
+                    name: "RSA-OAEP",
+                    hash: "SHA-256",
+                },
+                true,
+                ["encrypt"]
+            );
+        } catch (error) {
+            console.error("Error importing public key:", error);
+            throw error;
+        }
     }
-  }
 
-  /**
-   * TODO: Translate '从本地获取密钥对'
-   * @param {string} address - TODO: Translate '钱包地址'
-   * @returns {object|null} TODO: Translate '密钥对'
-   */
-  getKeyPair(address) {
-    try {
-      const encrypted = localStorage.getItem(`dchat_keys_${address}`)
-      if (!encrypted) return null
-      
-      const data = atob(encrypted)
-      return JSON.parse(data)
-    } catch (error) {
-      console.error('Error getting key pair:', error)
-      return null
+    /**
+     * Encrypt message using hybrid encryption (AES + RSA)
+     * @param {string} message - Plain text message
+     * @param {string} recipientPublicKeyPem - Recipient's public key in PEM format
+     * @returns {Promise<{encryptedMessage: string, encryptedKey: string, iv: string}>}
+     */
+    async encryptMessage(message, recipientPublicKeyPem) {
+        try {
+            // 1. Generate random AES key
+            const aesKey = await crypto.subtle.generateKey(
+                {
+                    name: "AES-GCM",
+                    length: 256,
+                },
+                true,
+                ["encrypt", "decrypt"]
+            );
+
+            // 2. Generate random IV
+            const iv = crypto.getRandomValues(new Uint8Array(12));
+
+            // 3. Encrypt message with AES
+            const encoder = new TextEncoder();
+            const messageBuffer = encoder.encode(message);
+            const encryptedMessageBuffer = await crypto.subtle.encrypt(
+                {
+                    name: "AES-GCM",
+                    iv: iv,
+                },
+                aesKey,
+                messageBuffer
+            );
+
+            // 4. Export AES key
+            const aesKeyBuffer = await crypto.subtle.exportKey("raw", aesKey);
+
+            // 5. Encrypt AES key with recipient's RSA public key
+            const recipientPublicKey = await this.importPublicKey(
+                recipientPublicKeyPem
+            );
+            const encryptedKeyBuffer = await crypto.subtle.encrypt(
+                {
+                    name: "RSA-OAEP",
+                },
+                recipientPublicKey,
+                aesKeyBuffer
+            );
+
+            // 6. Convert to base64 for transmission
+            return {
+                encryptedMessage: this.arrayBufferToBase64(encryptedMessageBuffer),
+                encryptedKey: this.arrayBufferToBase64(encryptedKeyBuffer),
+                iv: this.arrayBufferToBase64(iv),
+            };
+        } catch (error) {
+            console.error("Error encrypting message:", error);
+            throw error;
+        }
     }
-  }
 
-  /**
-   * TODO: Translate '删除密钥对'
-   * @param {string} address - TODO: Translate '钱包地址'
-   */
-  deleteKeyPair(address) {
-    localStorage.removeItem(`dchat_keys_${address}`)
-  }
+    /**
+     * Decrypt message using hybrid decryption
+     * @param {Object} encryptedPackage - {encryptedMessage, encryptedKey, iv}
+     * @param {CryptoKey} privateKey - User's private key
+     * @returns {Promise<string>} Decrypted message
+     */
+    async decryptMessage(encryptedPackage, privateKey) {
+        try {
+            const { encryptedMessage, encryptedKey, iv } = encryptedPackage;
 
-  /**
-   * TODO: Translate '检查是否有密钥对'
-   * @param {string} address - TODO: Translate '钱包地址'
-   * @returns {boolean}
-   */
-  hasKeyPair(address) {
-    return !!this.getKeyPair(address)
-  }
+            // 1. Decrypt AES key with RSA private key
+            const encryptedKeyBuffer = this.base64ToArrayBuffer(encryptedKey);
+            const aesKeyBuffer = await crypto.subtle.decrypt(
+                {
+                    name: "RSA-OAEP",
+                },
+                privateKey,
+                encryptedKeyBuffer
+            );
 
-  /**
-   * TODO: Translate '存储公钥到区块链'
-   * @param {string} publicKey - TODO: Translate '公钥'
-   */
-  async storePublicKeyOnChain(publicKey) {
-    try {
-      const service = new UserIdentityService()
-      await service.setPublicKey(publicKey)
-    } catch (error) {
-      console.error('Error storing public key on chain:', error)
-      throw error
+            // 2. Import AES key
+            const aesKey = await crypto.subtle.importKey(
+                "raw",
+                aesKeyBuffer,
+                {
+                    name: "AES-GCM",
+                    length: 256,
+                },
+                false,
+                ["decrypt"]
+            );
+
+            // 3. Decrypt message with AES key
+            const encryptedMessageBuffer = this.base64ToArrayBuffer(encryptedMessage);
+            const ivBuffer = this.base64ToArrayBuffer(iv);
+            const decryptedBuffer = await crypto.subtle.decrypt(
+                {
+                    name: "AES-GCM",
+                    iv: ivBuffer,
+                },
+                aesKey,
+                encryptedMessageBuffer
+            );
+
+            // 4. Convert to string
+            const decoder = new TextDecoder();
+            return decoder.decode(decryptedBuffer);
+        } catch (error) {
+            console.error("Error decrypting message:", error);
+            throw error;
+        }
     }
-  }
 
-  /**
-   * TODO: Translate '从区块链获取公钥'
-   * @param {string} address - TODO: Translate '钱包地址'
-   * @returns {Promise<string|null>} TODO: Translate '公钥'
-   */
-  async getPublicKeyFromChain(address) {
-    try {
-      const service = new UserIdentityService()
-      return await service.getPublicKey(address)
-    } catch (error) {
-      console.error('Error getting public key from chain:', error)
-      return null
+    /**
+     * Generate content hash for blockchain storage
+     * @param {string} content - Content to hash
+     * @returns {Promise<string>} Hex string hash
+     */
+    async generateContentHash(content) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(content);
+        const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+        return this.arrayBufferToHex(hashBuffer);
     }
-  }
 
-  /**
-   * TODO: Translate '导出密钥对'
-   * @param {string} address - TODO: Translate '钱包地址'
-   * @returns {string} JSON TODO: Translate '字符串'
-   */
-  exportKeyPair(address) {
-    const keyPair = this.getKeyPair(address)
-    if (!keyPair) throw new Error('No key pair found')
-    return JSON.stringify(keyPair, null, 2)
-  }
-
-  /**
-   * TODO: Translate '导入密钥对'
-   * @param {string} address - TODO: Translate '钱包地址'
-   * @param {string} jsonString - JSON TODO: Translate '字符串'
-   */
-  importKeyPair(address, jsonString) {
-    try {
-      const keyPair = JSON.parse(jsonString)
-      if (!keyPair.publicKey || !keyPair.privateKey) {
-        throw new Error('Invalid key pair format')
-      }
-      this.storeKeyPair(address, keyPair)
-    } catch (error) {
-      console.error('Error importing key pair:', error)
-      throw error
+    // Utility functions
+    arrayBufferToBase64(buffer) {
+        const bytes = new Uint8Array(buffer);
+        let binary = "";
+        for (let i = 0; i < bytes.byteLength; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        return btoa(binary);
     }
-  }
+
+    base64ToArrayBuffer(base64) {
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+            bytes[i] = binary.charCodeAt(i);
+        }
+        return bytes.buffer;
+    }
+
+    arrayBufferToHex(buffer) {
+        return Array.from(new Uint8Array(buffer))
+            .map((b) => b.toString(16).padStart(2, "0"))
+            .join("");
+    }
+
+    arrayBufferToPem(buffer, type) {
+        const base64 = this.arrayBufferToBase64(buffer);
+        const lines = base64.match(/.{1,64}/g) || [];
+        return `-----BEGIN ${type}-----\n${lines.join("\n")}\n-----END ${type}-----`;
+    }
+
+    pemToArrayBuffer(pem) {
+        const base64 = pem
+            .replace(/-----BEGIN [^-]+-----/, "")
+            .replace(/-----END [^-]+-----/, "")
+            .replace(/\s/g, "");
+        return this.base64ToArrayBuffer(base64);
+    }
+
+    /**
+     * Store keys in IndexedDB
+     * @param {CryptoKey} privateKey
+     * @param {string} publicKeyPem
+     */
+    async storeKeys(privateKey, publicKeyPem) {
+        try {
+            // Export private key for storage
+            const privateKeyBuffer = await crypto.subtle.exportKey("pkcs8", privateKey);
+            const privateKeyBase64 = this.arrayBufferToBase64(privateKeyBuffer);
+
+            localStorage.setItem("dchat_public_key", publicKeyPem);
+            localStorage.setItem("dchat_private_key", privateKeyBase64);
+        } catch (error) {
+            console.error("Error storing keys:", error);
+            throw error;
+        }
+    }
+
+    /**
+     * Load keys from IndexedDB
+     * @returns {Promise<{publicKey: string, privateKey: CryptoKey}>}
+     */
+    async loadKeys() {
+        try {
+            const publicKeyPem = localStorage.getItem("dchat_public_key");
+            const privateKeyBase64 = localStorage.getItem("dchat_private_key");
+
+            if (!publicKeyPem || !privateKeyBase64) {
+                return null;
+            }
+
+            const privateKeyBuffer = this.base64ToArrayBuffer(privateKeyBase64);
+            const privateKey = await crypto.subtle.importKey(
+                "pkcs8",
+                privateKeyBuffer,
+                {
+                    name: "RSA-OAEP",
+                    hash: "SHA-256",
+                },
+                true,
+                ["decrypt"]
+            );
+
+            this.publicKeyPem = publicKeyPem;
+            this.privateKey = privateKey;
+
+            return {
+                publicKey: publicKeyPem,
+                privateKey: privateKey,
+            };
+        } catch (error) {
+            console.error("Error loading keys:", error);
+            return null;
+        }
+    }
 }
 
-export const encryptionService = new EncryptionService()
+export default new EncryptionService();

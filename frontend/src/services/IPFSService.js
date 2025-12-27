@@ -1,111 +1,242 @@
-import { create } from 'ipfs-http-client'
-
 /**
- * IPFS TODO: Translate '服务'
- * TODO: Translate '管理文件上传和检索'
+ * IPFS Service for Dchat
+ * Uses Pinata as IPFS gateway for storing encrypted messages
  */
-export class IPFSService {
-  constructor() {
-    // TODO: Translate '使用公共' IPFS TODO: Translate '网关'
-    this.client = create({
-      host: 'ipfs.infura.io',
-      port: 5001,
-      protocol: 'https'
-    })
-    
-    this.gatewayUrl = 'https://ipfs.io/ipfs/'
-  }
 
-  /**
-   * TODO: Translate '上传文件到' IPFS
-   */
-  async uploadFile(file, onProgress) {
-    try {
-      const added = await this.client.add(file, {
-        progress: (bytes) => {
-          if (onProgress) {
-            const progress = (bytes / file.size) * 100
-            onProgress(Math.min(progress, 100))
-          }
+class IPFSService {
+    constructor() {
+        // Pinata API configuration
+        // Support both JWT and API Key authentication
+        this.pinataJWT = import.meta.env.VITE_PINATA_JWT || '';
+        this.pinataApiKey = import.meta.env.VITE_PINATA_API_KEY || '';
+        this.pinataSecretKey = import.meta.env.VITE_PINATA_SECRET_KEY || '';
+        this.pinataGateway = import.meta.env.VITE_PINATA_GATEWAY || 'https://green-jittery-gecko-888.mypinata.cloud/ipfs/';
+        this.pinataApiUrl = 'https://api.pinata.cloud';
+
+        console.log('🔧 Pinata Configuration:', {
+            hasJWT: !!this.pinataJWT,
+            hasApiKey: !!this.pinataApiKey,
+            gateway: this.pinataGateway
+        });
+    }
+
+    /**
+     * Get authorization headers for Pinata API
+     * @returns {Object} Headers object
+     */
+    getAuthHeaders() {
+        if (this.pinataJWT) {
+            return {
+                'Authorization': `Bearer ${this.pinataJWT}`,
+            };
+        } else if (this.pinataApiKey && this.pinataSecretKey) {
+            return {
+                'pinata_api_key': this.pinataApiKey,
+                'pinata_secret_api_key': this.pinataSecretKey,
+            };
         }
-      })
-
-      return {
-        success: true,
-        hash: added.path,
-        url: this.getFileUrl(added.path),
-        size: added.size
-      }
-    } catch (err) {
-      console.error('IPFS upload error:', err)
-      return {
-        success: false,
-        error: err.message
-      }
+        return {};
     }
-  }
 
-  /**
-   * TODO: Translate '上传' JSON TODO: Translate '数据'
-   */
-  async uploadJSON(data) {
-    try {
-      const json = JSON.stringify(data)
-      const added = await this.client.add(json)
-
-      return {
-        success: true,
-        hash: added.path,
-        url: this.getFileUrl(added.path)
-      }
-    } catch (err) {
-      console.error('IPFS JSON upload error:', err)
-      return {
-        success: false,
-        error: err.message
-      }
+    /**
+     * Check if Pinata is configured
+     * @returns {boolean}
+     */
+    isPinataConfigured() {
+        return !!(this.pinataJWT || (this.pinataApiKey && this.pinataSecretKey));
     }
-  }
 
-  /**
-   * TODO: Translate '获取文件' URL
-   */
-  getFileUrl(hash) {
-    return `${this.gatewayUrl}${hash}`
-  }
+    /**
+     * Upload encrypted message to IPFS
+     * @param {Object} encryptedData - Encrypted message package
+     * @returns {Promise<string>} IPFS hash (CID)
+     */
+    async uploadEncryptedMessage(encryptedData) {
+        try {
+            // Fallback to localStorage if Pinata is not configured
+            if (!this.isPinataConfigured()) {
+                console.warn('⚠️  Pinata not configured, using mock storage');
+                return this.mockUpload(encryptedData);
+            }
 
-  /**
-   * TODO: Translate '检查文件类型'
-   */
-  getFileType(filename) {
-    const ext = filename.split('.').pop().toLowerCase()
-    
-    const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg']
-    const videoExts = ['mp4', 'webm', 'ogg', 'mov']
-    const audioExts = ['mp3', 'wav', 'ogg', 'm4a']
-    const docExts = ['pdf', 'doc', 'docx', 'txt', 'md']
-    
-    if (imageExts.includes(ext)) return 'image'
-    if (videoExts.includes(ext)) return 'video'
-    if (audioExts.includes(ext)) return 'audio'
-    if (docExts.includes(ext)) return 'document'
-    
-    return 'file'
-  }
+            const data = JSON.stringify({
+                pinataContent: encryptedData,
+                pinataMetadata: {
+                    name: `dchat-message-${Date.now()}.json`,
+                },
+            });
 
-  /**
-   * TODO: Translate '格式化文件大小'
-   */
-  formatFileSize(bytes) {
-    if (bytes === 0) return '0 B'
-    
-    const k = 1024
-    const sizes = ['B', 'KB', 'MB', 'GB']
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i]
-  }
+            const response = await fetch(`${this.pinataApiUrl}/pinning/pinJSONToIPFS`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...this.getAuthHeaders(),
+                },
+                body: data,
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Pinata API Error:', errorText);
+                throw new Error(`Failed to upload to IPFS: ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log('✅ Uploaded to IPFS:', result.IpfsHash);
+            return result.IpfsHash;
+        } catch (error) {
+            console.error('Error uploading to IPFS:', error);
+            // Fallback to localStorage storage
+            return this.mockUpload(encryptedData);
+        }
+    }
+
+    /**
+     * Retrieve encrypted message from IPFS
+     * @param {string} ipfsHash - IPFS CID
+     * @returns {Promise<Object>} Encrypted message package
+     */
+    async retrieveEncryptedMessage(ipfsHash) {
+        try {
+            // Check if it's a mock hash
+            if (ipfsHash.startsWith('mock_')) {
+                return this.mockRetrieve(ipfsHash);
+            }
+
+            const response = await fetch(`${this.pinataGateway}${ipfsHash}`);
+
+            if (!response.ok) {
+                throw new Error('Failed to retrieve from IPFS');
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Error retrieving from IPFS:', error);
+            // Fallback to localStorage storage
+            return this.mockRetrieve(ipfsHash);
+        }
+    }
+
+    /**
+     * Fallback storage using localStorage when IPFS is unavailable
+     * @param {Object} data
+     * @returns {string} Mock IPFS hash
+     */
+    mockUpload(data) {
+        const mockHash = `mock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+        // Store in localStorage as fallback
+        const storage = JSON.parse(localStorage.getItem('dchat_ipfs_storage') || '{}');
+        storage[mockHash] = data;
+        localStorage.setItem('dchat_ipfs_storage', JSON.stringify(storage));
+
+        console.log(`📦 Mock IPFS Upload: ${mockHash}`);
+        return mockHash;
+    }
+
+    /**
+     * Retrieve from localStorage fallback storage
+     * @param {string} hash
+     * @returns {Object} Stored data
+     */
+    mockRetrieve(hash) {
+        const storage = JSON.parse(localStorage.getItem('dchat_ipfs_storage') || '{}');
+        const data = storage[hash];
+
+        if (!data) {
+            throw new Error('Mock IPFS data not found');
+        }
+
+        console.log(`📥 Mock IPFS Retrieve: ${hash}`);
+        return data;
+    }
+
+    /**
+     * Upload file to IPFS
+     * @param {File} file
+     * @returns {Promise<string>} IPFS hash
+     */
+    async uploadFile(file) {
+        try {
+            if (!this.isPinataConfigured()) {
+                console.warn('⚠️  Pinata not configured, using mock file storage');
+                // Mock file upload
+                return `mock_file_${Date.now()}_${file.name}`;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const metadata = JSON.stringify({
+                name: file.name,
+            });
+            formData.append('pinataMetadata', metadata);
+
+            const response = await fetch(`${this.pinataApiUrl}/pinning/pinFileToIPFS`, {
+                method: 'POST',
+                headers: {
+                    ...this.getAuthHeaders(),
+                },
+                body: formData,
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Pinata File Upload Error:', errorText);
+                throw new Error(`Failed to upload file to IPFS: ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log('✅ File uploaded to IPFS:', result.IpfsHash);
+            return result.IpfsHash;
+        } catch (error) {
+            console.error('Error uploading file to IPFS:', error);
+            return `mock_file_${Date.now()}_${file.name}`;
+        }
+    }
+
+    /**
+     * Get IPFS gateway URL
+     * @param {string} ipfsHash
+     * @returns {string} Full gateway URL
+     */
+    getGatewayUrl(ipfsHash) {
+        if (ipfsHash.startsWith('mock_')) {
+            return `#mock-ipfs://${ipfsHash}`;
+        }
+        return `${this.pinataGateway}${ipfsHash}`;
+    }
+
+    /**
+     * Pin existing IPFS hash
+     * @param {string} ipfsHash
+     * @returns {Promise<boolean>}
+     */
+    async pinHash(ipfsHash) {
+        try {
+            if (!this.isPinataConfigured()) {
+                return true; // Mock success
+            }
+
+            const data = JSON.stringify({
+                hashToPin: ipfsHash,
+            });
+
+            const response = await fetch(`${this.pinataApiUrl}/pinning/pinByHash`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...this.getAuthHeaders(),
+                },
+                body: data,
+            });
+
+            return response.ok;
+        } catch (error) {
+            console.error('Error pinning hash:', error);
+            return false;
+        }
+    }
 }
 
-// TODO: Translate '创建单例'
-export const ipfsService = new IPFSService()
+export default new IPFSService();
