@@ -17,7 +17,7 @@ import EncryptionSettings from './EncryptionSettings'
 
 const MainApp = ({ user, onLogout }) => {
   const location = useLocation()
-  
+
   // Check whether to show bottom navigation（Not shown on chat room and group pages）
   const showBottomNav = !location.pathname.startsWith('/chat/') && !location.pathname.startsWith('/group/')
 
@@ -25,8 +25,7 @@ const MainApp = ({ user, onLogout }) => {
     <div className="min-h-screen flex flex-col">
       {/* Top notification bar */}
       {showBottomNav && (
-        <div className="flex items-center justify-between px-4 py-2 border-b bg-white">
-          <h1 className="text-lg font-semibold">DChat</h1>
+        <div className="flex items-center justify-end px-4 py-2 border-b bg-white">
           <NotificationCenter />
         </div>
       )}
@@ -35,7 +34,7 @@ const MainApp = ({ user, onLogout }) => {
       <div className="flex-1 overflow-hidden">
         <Routes>
           <Route path="/" element={<ChatList user={user} />} />
-          <Route path="/chat/:id" element={<ChatInterface />} />
+          <Route path="/chat/:id" element={<ChatRoom />} />
           <Route path="/group/:id" element={<GroupChat />} />
           <Route path="/moments" element={<Moments />} />
           <Route path="/projects" element={<Projects />} />

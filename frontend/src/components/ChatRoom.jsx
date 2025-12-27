@@ -147,7 +147,7 @@ const ChatRoom = () => {
 
   // Connect to Socket.IO server
   useEffect(() => {
-    if (!account) return
+    if (!account || recipientAddress === 'file-helper') return
 
     // Connect to Socket.IO with user account
     socketService.connect(account)
@@ -227,6 +227,27 @@ const ChatRoom = () => {
     setSending(true)
 
     try {
+      // Handle File Transfer Assistant
+      if (recipientAddress === 'file-helper') {
+        const newMessage = {
+          id: `msg_${Date.now()}`,
+          text: messageText,
+          sender: 'me',
+          timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+          isRead: true,
+          type: 'text',
+        }
+        const updatedMessages = [...messages, newMessage]
+        setMessages(updatedMessages)
+
+        const storageKey = `dchat_messages_${account}_${recipientAddress}`
+        localStorage.setItem(storageKey, JSON.stringify(updatedMessages))
+
+        updateConversationsList(messageText)
+        setSending(false)
+        return
+      }
+
       // 1. Get recipient's public key
       const recipientPublicKey = await KeyManagementService.getPublicKey(recipientAddress)
 
@@ -333,6 +354,33 @@ const ChatRoom = () => {
 
       // Construct file message
       const messageText = `[FILE]${file.name}|${ipfsHash}|${file.type}|${file.size}`
+
+      if (recipientAddress === 'file-helper') {
+        const fileUrl = ipfsService.getGatewayUrl(ipfsHash)
+        const newMessage = {
+          id: `msg_${Date.now()}`,
+          text: messageText,
+          sender: 'me',
+          timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+          isRead: true,
+          type: 'file',
+          fileInfo: {
+            name: file.name,
+            hash: ipfsHash,
+            type: file.type,
+            size: file.size,
+            url: fileUrl
+          }
+        }
+        const updatedMessages = [...messages, newMessage]
+        setMessages(updatedMessages)
+        localStorage.setItem(`dchat_messages_${account}_${recipientAddress}`, JSON.stringify(updatedMessages))
+        updateConversationsList(`Sent a file: ${file.name}`)
+        success('Saved!', 'File saved to cloud')
+        setUploading(false)
+        e.target.value = ''
+        return
+      }
 
       // Send as regular message (encrypted)
       // 1. Get recipient's public key

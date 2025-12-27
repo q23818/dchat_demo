@@ -23,10 +23,10 @@ const Profile = ({ user, onLogout }) => {
     if (user?.walletAddress) {
       const profile = UserProfileService.getProfile(user.walletAddress)
       setUserProfile(profile)
-      
+
       const avatar = UserProfileService.getDisplayAvatar(user.walletAddress)
       setAvatarData(avatar)
-      
+
       console.log('📋 Loaded user profile:', { profile, avatar })
     }
   }, [user?.walletAddress])
@@ -34,12 +34,12 @@ const Profile = ({ user, onLogout }) => {
   // Handle avatar update
   const handleAvatarUpdate = async (avatarInfo) => {
     if (!user?.walletAddress) return
-    
+
     console.log('🖼️ Updating avatar:', avatarInfo)
-    
+
     // savetoUserProfileService
     const success = UserProfileService.updateAvatar(user.walletAddress, avatarInfo)
-    
+
     if (success) {
       // Update local state
       setAvatarData({
@@ -47,10 +47,10 @@ const Profile = ({ user, onLogout }) => {
         url: avatarInfo.url,
         ipfsHash: avatarInfo.ipfsHash
       })
-      
+
       // Add to history
       UserProfileService.addAvatarToHistory(user.walletAddress, avatarInfo)
-      
+
       console.log('✅ Avatar updated successfully')
     } else {
       console.error('❌ Failed to update avatar')
@@ -155,9 +155,9 @@ const Profile = ({ user, onLogout }) => {
                 <p className="text-sm text-gray-500">{userProfile?.position || user?.position || ''}</p>
               </div>
             </div>
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Button
+              variant="ghost"
+              size="icon"
               title={t('profile.edit')}
               onClick={() => setShowEditDialog(true)}
             >
@@ -167,8 +167,8 @@ const Profile = ({ user, onLogout }) => {
 
           {/* LinkedIn Integration */}
           <div className="py-3 border-t border-gray-100">
-            <LinkedInConnect 
-              onConnect={setLinkedInData} 
+            <LinkedInConnect
+              onConnect={setLinkedInData}
               isConnected={linkedInData}
             />
           </div>
@@ -180,7 +180,7 @@ const Profile = ({ user, onLogout }) => {
               <div>
                 <p className="text-sm text-gray-700">{t('profile.walletAddress')}</p>
                 <p className="text-xs text-gray-500 font-mono">
-                  {showWalletAddress 
+                  {showWalletAddress
                     ? (user?.walletAddress || '0x1234567890abcdef1234567890abcdef12345678')
                     : `${(user?.walletAddress || '0x0000').substring(0, 6)}...${(user?.walletAddress || '0x0000').substring((user?.walletAddress || '0x0000').length - 4)}`}
                 </p>
@@ -211,7 +211,7 @@ const Profile = ({ user, onLogout }) => {
                     <span className="text-xs text-gray-500">{project.status}</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-1.5">
-                    <div 
+                    <div
                       className="bg-black h-1.5 rounded-full transition-all duration-300"
                       style={{ width: `${project.progress}%` }}
                     ></div>
@@ -254,11 +254,13 @@ const Profile = ({ user, onLogout }) => {
       </div>
 
       {/* LinkedIn Messages */}
-      <div className="px-4 mb-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <LinkedInMessages isLinkedInConnected={linkedInData} />
+      {linkedInData && (
+        <div className="px-4 mb-6">
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <LinkedInMessages isLinkedInConnected={linkedInData} />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Settings Menu */}
       <div className="px-4 mb-6">
@@ -269,9 +271,8 @@ const Profile = ({ user, onLogout }) => {
               <button
                 key={item.id}
                 onClick={item.action}
-                className={`w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors ${
-                  index !== menuItems.length - 1 ? 'border-b border-gray-100' : ''
-                }`}
+                className={`w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors ${index !== menuItems.length - 1 ? 'border-b border-gray-100' : ''
+                  }`}
               >
                 <div className="flex items-center gap-3">
                   <Icon className="w-5 h-5 text-gray-600" />
