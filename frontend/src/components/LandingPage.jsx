@@ -71,10 +71,10 @@ const LandingPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Left: Text Content */}
           <div>
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-black mb-6 leading-tight break-words">
-              Web3 Business
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-black mb-6 leading-tight">
+              <span className="whitespace-nowrap">Web3 Business</span>
               <br />
-              <span className="block">Communication</span>
+              <span className="whitespace-nowrap">Communication</span>
             </h2>
             <p className="text-xl text-gray-600 mb-8 leading-relaxed">
               Dchat is a private, secure, and anonymous way for you and your clients to communicate. Bring blockchain to the people, guarantee contracts' safety and security, and the messages are permanently stored.

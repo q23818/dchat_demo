@@ -29,61 +29,61 @@
   /* Modern Clean Palette */
   --background: oklch(0.985 0.002 247.839);
   --foreground: oklch(0.141 0.005 285.823);
-  
+
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.141 0.005 285.823);
-  
+
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.141 0.005 285.823);
-  
+
   /* Brand Color: Deep Blue-Purple */
   --primary: oklch(0.55 0.2 270);
   --primary-foreground: oklch(0.985 0 0);
-  
+
   --secondary: oklch(0.96 0.01 270);
   --secondary-foreground: oklch(0.35 0.1 270);
-  
+
   --muted: oklch(0.96 0.005 247.839);
   --muted-foreground: oklch(0.552 0.016 285.938);
-  
+
   --accent: oklch(0.96 0.01 270);
   --accent-foreground: oklch(0.35 0.1 270);
-  
+
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.985 0 0);
-  
+
   --border: oklch(0.92 0.004 286.32);
   --input: oklch(0.92 0.004 286.32);
   --ring: oklch(0.55 0.2 270);
-  
+
   --radius: 0.75rem;
 }
 
 .dark {
   --background: oklch(0.141 0.005 285.823);
   --foreground: oklch(0.985 0 0);
-  
+
   --card: oklch(0.18 0.005 285.823);
   --card-foreground: oklch(0.985 0 0);
-  
+
   --popover: oklch(0.18 0.005 285.823);
   --popover-foreground: oklch(0.985 0 0);
-  
+
   --primary: oklch(0.65 0.2 270);
   --primary-foreground: oklch(0.985 0 0);
-  
+
   --secondary: oklch(0.25 0.05 270);
   --secondary-foreground: oklch(0.985 0 0);
-  
+
   --muted: oklch(0.25 0.005 285.823);
   --muted-foreground: oklch(0.7 0.01 285.823);
-  
+
   --accent: oklch(0.25 0.05 270);
   --accent-foreground: oklch(0.985 0 0);
-  
+
   --destructive: oklch(0.5 0.2 27);
   --destructive-foreground: oklch(0.985 0 0);
-  
+
   --border: oklch(0.25 0.005 285.823);
   --input: oklch(0.25 0.005 285.823);
   --ring: oklch(0.65 0.2 270);
@@ -93,12 +93,20 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground antialiased;
   }
-  /* Prevent text overflow */
-  h1, h2, h3, h4, h5, h6, p, span, div {
-    overflow-wrap: break-word;
-    word-wrap: break-word;
+
+  /* Prevent text overflow - keep words intact */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  p {
+    word-break: normal;
+    hyphens: none;
   }
 }
