@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from ..models.user import User, db
 from ..services.aws_service import aws_service
-from ..services.nonce_manager import generate_nonce, verify_nonce
+# from ..services.nonce_manager import generate_nonce, verify_nonce
 import random
 
 account_binding_bp = Blueprint('account_binding', __name__)

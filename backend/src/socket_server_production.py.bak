@@ -5,7 +5,7 @@ Supports multi-server clustering, message persistence, and high concurrency
 
 import socketio
 import asyncio
-import redis.asyncio as aioredis
+import aioredis
 from typing import Dict, Set, Optional
 import logging
 import jwt
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 # Environment variables
 SECRET_KEY = os.environ.get('SECRET_KEY', 'dchat-secret-key')
 REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379')
-DATABASE_URL = os.environ.get('ASYNC_DATABASE_URL', 'postgresql+asyncpg://user:pass@localhost/dchat')
+DATABASE_URL = os.environ.get('DATABASE_URL', 'postgresql+asyncpg://user:pass@localhost/dchat')
 
 # Redis connection pool
 redis_pool = None
@@ -53,7 +53,7 @@ sio = socketio.AsyncServer(
 async def init_redis():
     """Initialize Redis connection pool"""
     global redis_pool
-    redis_pool = aioredis.from_url(REDIS_URL, encoding="utf-8", decode_responses=True, max_connections=20)
+    redis_pool = await aioredis.create_redis_pool(REDIS_URL, minsize=5, maxsize=20)
     logger.info("Redis connection pool initialized")
 
 
@@ -78,8 +78,8 @@ async def init_database():
 async def close_connections():
     """Close all connections"""
     if redis_pool:
-        await redis_pool.close()
-        # await redis_pool.wait_closed()  # Not needed in redis.asyncio
+        redis_pool.close()
+        await redis_pool.wait_closed()
     if db_engine:
         await db_engine.dispose()
     logger.info("All connections closed")

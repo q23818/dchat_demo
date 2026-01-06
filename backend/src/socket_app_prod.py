@@ -7,7 +7,7 @@ from aiohttp import web
 import logging
 import signal
 import sys
-from socket_server_production import get_socket_app, startup, shutdown
+from src.socket_server_production import get_socket_app, startup, shutdown
 
 # Configure logging
 logging.basicConfig(
