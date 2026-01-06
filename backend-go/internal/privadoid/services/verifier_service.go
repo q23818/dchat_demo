@@ -9,8 +9,8 @@ import (
 	"fmt"
 	"time"
 
-	"dchat/internal/privadoid"
-	"dchat/internal/privadoid/models"
+	"github.com/everest-an/dchat-backend/internal/privadoid"
+	"github.com/everest-an/dchat-backend/internal/privadoid/models"
 )
 
 // VerifierService handles Privado ID verification operations

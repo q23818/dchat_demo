@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"dchat/internal/privadoid"
-	"dchat/internal/privadoid/models"
-	"dchat/internal/privadoid/services"
+	"github.com/everest-an/dchat-backend/internal/privadoid"
+	"github.com/everest-an/dchat-backend/internal/privadoid/models"
+	"github.com/everest-an/dchat-backend/internal/privadoid/services"
 
 	"github.com/gin-gonic/gin"
 )
