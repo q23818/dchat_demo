@@ -8,7 +8,7 @@ import { useToast } from '../contexts/ToastContext'
 import { UserProfileService } from '../services/UserProfileService'
 import GroupService from '../services/GroupService'
 import GroupMessageService from '../services/GroupMessageService'
-import ipfsService from '../services/ipfsService'
+import ipfsService from '../services/IPFSService'
 import socketService from '../services/socketService'
 import { useLanguage } from '../contexts/LanguageContext'
 

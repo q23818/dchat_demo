@@ -4,7 +4,7 @@
  */
 
 import encryptionService from './encryptionService';
-import ipfsService from './ipfsService';
+import ipfsService from './IPFSService';
 import blockchainService from './blockchainService';
 
 class Web3MessageService {

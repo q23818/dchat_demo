@@ -4,7 +4,7 @@
  * Manages group messages, file sharing, and IPFS storage
  */
 
-import ipfsService from './ipfsService'
+import ipfsService from './IPFSService'
 import { UserProfileService } from './UserProfileService'
 import GroupService from './GroupService'
 

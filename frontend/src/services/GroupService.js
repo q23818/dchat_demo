@@ -4,7 +4,7 @@
  * Manages group CRUD operations, IPFS storage, and blockchain integration
  */
 
-import ipfsService from './ipfsService'
+import ipfsService from './IPFSService'
 import { UserProfileService } from './UserProfileService'
 
 class GroupService {
