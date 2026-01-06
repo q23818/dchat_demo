@@ -8,6 +8,8 @@ import (
 	"github.com/everest-an/dchat-backend/internal/database"
 	"github.com/everest-an/dchat-backend/internal/handlers"
 	"github.com/everest-an/dchat-backend/internal/middleware"
+	"github.com/everest-an/dchat-backend/internal/privadoid"
+	privadoidHandlers "github.com/everest-an/dchat-backend/internal/privadoid/handlers"
 	"github.com/gin-gonic/gin"
 )
 
@@ -33,6 +35,10 @@ func main() {
 	// Initialize handlers
 	authHandler := handlers.NewAuthHandler(userService, jwtService, web3Service)
 	messageHandler := handlers.NewMessageHandler(db.DB)
+
+	// Initialize Privado ID
+	privadoConfig := privadoid.LoadConfig()
+	privadoHandler := privadoidHandlers.NewVerificationHandler(db.DB, privadoConfig)
 
 	// Setup Gin router
 	if cfg.Server.Environment == "production" {
@@ -72,7 +78,16 @@ func main() {
 		protected.GET("/messages/:user_id", messageHandler.GetMessages)
 		protected.GET("/conversations", messageHandler.GetConversations)
 		protected.PUT("/messages/read/:sender_id", messageHandler.MarkAsRead)
+
+		// Privado ID verification routes
+		protected.POST("/verifications/request", privadoHandler.CreateRequest)
+		protected.GET("/verifications/user/:userId", privadoHandler.GetUserVerifications)
+		protected.DELETE("/verifications/:id", privadoHandler.DeleteVerification)
 	}
+
+	// Public Privado ID routes
+	api.POST("/verifications/verify", privadoHandler.VerifyProof)
+	api.GET("/verifications/types", privadoHandler.GetVerificationTypes)
 
 	// Start server
 	port := ":" + cfg.Server.APIPort
