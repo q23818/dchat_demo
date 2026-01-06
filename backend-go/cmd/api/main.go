@@ -38,7 +38,8 @@ func main() {
 
 	// Initialize Privado ID
 	privadoConfig := privadoid.LoadConfig()
-	privadoHandler := privadoidHandlers.NewVerificationHandler(db.DB, privadoConfig)
+	sqlDB, _ := db.DB.DB() // Get underlying *sql.DB from GORM
+	privadoHandler := privadoidHandlers.NewVerificationHandler(sqlDB, privadoConfig)
 
 	// Setup Gin router
 	if cfg.Server.Environment == "production" {
