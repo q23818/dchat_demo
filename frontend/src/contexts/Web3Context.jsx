@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { ethers } from 'ethers'
 import { NETWORKS, DEFAULT_NETWORK, RPC_URLS } from '../config/web3'
+import web3AuthService from '../services/web3AuthService'
 
 const Web3Context = createContext()
 
@@ -20,6 +21,8 @@ export const Web3Provider = ({ children }) => {
   const [isConnecting, setIsConnecting] = useState(false)
   const [error, setError] = useState(null)
   const [balance, setBalance] = useState('0')
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [user, setUser] = useState(null)
 
   // TODO: Translate '检查是否安装了' MetaMask
   const isMetaMaskInstalled = () => {
@@ -31,7 +34,7 @@ export const Web3Provider = ({ children }) => {
     if (!provider || !address) return '0'
     try {
       const balance = await provider.getBalance(address)
-      return ethers.utils.formatEther(balance)
+      return ethers.formatEther(balance)
     } catch (err) {
       console.error('Error getting balance:', err)
       return '0'
@@ -59,7 +62,7 @@ export const Web3Provider = ({ children }) => {
       }
 
       // TODO: Translate '创建' provider TODO: Translate '和' signer
-      const web3Provider = new ethers.providers.Web3Provider(window.ethereum)
+      const web3Provider = new ethers.BrowserProvider(window.ethereum)
       const web3Signer = await web3Provider.getSigner()
       const network = await web3Provider.getNetwork()
 
@@ -72,11 +75,30 @@ export const Web3Provider = ({ children }) => {
       const userBalance = await getBalance(accounts[0])
       setBalance(userBalance)
 
-      // saveto localStorage
-      localStorage.setItem('walletConnected', 'true')
-      localStorage.setItem('walletAddress', accounts[0])
-
-      return accounts[0]
+      // Authenticate with backend
+      try {
+        const authResult = await web3AuthService.authenticateWallet(
+          accounts[0],
+          async (message) => {
+            const signer = await web3Provider.getSigner()
+            return await signer.signMessage(message)
+          }
+        )
+        
+        setIsAuthenticated(true)
+        setUser(authResult.user)
+        
+        // saveto localStorage
+        localStorage.setItem('walletConnected', 'true')
+        localStorage.setItem('walletAddress', accounts[0])
+        
+        return accounts[0]
+      } catch (authError) {
+        console.error('Backend authentication failed:', authError)
+        // Disconnect wallet if authentication fails
+        disconnectWallet()
+        throw new Error('Authentication failed: ' + authError.message)
+      }
     } catch (err) {
       console.error('连接钱包失败:', err)
       setError(err.message || '连接钱包失败')
@@ -93,6 +115,9 @@ export const Web3Provider = ({ children }) => {
     setSigner(null)
     setChainId(null)
     setBalance('0')
+    setIsAuthenticated(false)
+    setUser(null)
+    web3AuthService.logout()
     localStorage.removeItem('walletConnected')
     localStorage.removeItem('walletAddress')
   }
@@ -189,7 +214,7 @@ export const Web3Provider = ({ children }) => {
   // TODO: Translate '创建只读' provider (TODO: Translate '用于未连接钱包时读取数据')
   useEffect(() => {
     if (!provider) {
-      const readOnlyProvider = new ethers.providers.JsonRpcProvider(RPC_URLS[DEFAULT_NETWORK])
+      const readOnlyProvider = new ethers.JsonRpcProvider(RPC_URLS[DEFAULT_NETWORK])
       setProvider(readOnlyProvider)
     }
   }, [provider])
@@ -203,6 +228,8 @@ export const Web3Provider = ({ children }) => {
     isConnecting,
     error,
     isConnected: !!account,
+    isAuthenticated,
+    user,
     isMetaMaskInstalled: isMetaMaskInstalled(),
     connectWallet,
     disconnectWallet,
