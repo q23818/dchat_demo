@@ -38,10 +38,11 @@ class Web3AuthService {
    * @param {string} signature - The signed message
    * @returns {Promise<{token: string, user: object}>}
    */
-  async verifySignature(walletAddress, signature) {
+  async verifySignature(walletAddress, message, signature) {
     try {
-      const response = await axios.post(`${API_BASE_URL}/auth/verify`, {
+      const response = await axios.post(`${API_BASE_URL}/auth/wallet-login`, {
         wallet_address: walletAddress.toLowerCase(),
+        message: message,
         signature: signature
       })
       
@@ -78,7 +79,7 @@ class Web3AuthService {
       const signature = await signMessageFn(message)
       
       // Step 3: Verify signature with backend
-      const authResult = await this.verifySignature(walletAddress, signature)
+      const authResult = await this.verifySignature(walletAddress, message, signature)
       
       return authResult
     } catch (error) {
