@@ -136,8 +136,12 @@ const ChatInterface = () => {
                   border: 'none',
                   cursor: 'pointer',
                   padding: '8px',
-                  fontSize: '20px'
+                  fontSize: '20px',
+                  color: '#4F46E5',
+                  transition: 'all 0.2s ease',
                 }}
+                onMouseEnter={(e) => e.target.style.color = '#3730A3'}
+                onMouseLeave={(e) => e.target.style.color = '#4F46E5'}
                 title="Voice Call"
               >
                 📞
@@ -148,8 +152,12 @@ const ChatInterface = () => {
                   border: 'none',
                   cursor: 'pointer',
                   padding: '8px',
-                  fontSize: '20px'
+                  fontSize: '20px',
+                  color: '#4F46E5',
+                  transition: 'all 0.2s ease',
                 }}
+                onMouseEnter={(e) => e.target.style.color = '#3730A3'}
+                onMouseLeave={(e) => e.target.style.color = '#4F46E5'}
                 title="Video Call"
               >
                 📹
@@ -160,8 +168,13 @@ const ChatInterface = () => {
                   border: 'none',
                   cursor: 'pointer',
                   padding: '8px',
-                  fontSize: '20px'
+                  fontSize: '20px',
+                  color: '#4F46E5',
+                  fontWeight: 'bold',
+                  transition: 'all 0.2s ease',
                 }}
+                onMouseEnter={(e) => e.target.style.color = '#3730A3'}
+                onMouseLeave={(e) => e.target.style.color = '#4F46E5'}
                 title="More Options"
               >
                 ⋮
