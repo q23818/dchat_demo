@@ -57,6 +57,18 @@
   ],
   "rewrites": [
     {
+      "source": "/api/:path*",
+      "destination": "http://44.211.79.69/api/:path*"
+    },
+    {
+      "source": "/socket.io/:path*",
+      "destination": "http://44.211.79.69/socket.io/:path*"
+    },
+    {
+      "source": "/health",
+      "destination": "http://44.211.79.69/health"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
